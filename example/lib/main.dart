@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:floating_logger/floating_logger.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,6 +11,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
@@ -30,40 +31,89 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  List<ListDataModel> listData = [];
+  @override
+  void initState() {
+    listData = [
+      ListDataModel(
+        message: 'Test Fetch Success 1',
+        buttonText: 'Fetch Facts',
+        onPressed: () => fetchFacts(),
+      ),
+      ListDataModel(
+        message: 'Test Fetch Success 2',
+        buttonText: 'Failure',
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failure button pressed')),
+          );
+        },
+      ),
+    ];
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+    return FloatingLoggerControl(
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: Text(widget.title),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: listData.map((data) {
+              return Column(
+                children: [
+                  Text(data.message),
+                  ElevatedButton(
+                    onPressed: data.onPressed,
+                    child: Text(
+                      data.buttonText,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10.0,
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
       ),
     );
   }
+
+  Future<void> fetchFacts() async {
+    try {
+      final response =
+          await DioLogger.instance.get('https://cat-fact.herokuapp.com/facts/');
+
+      if (response.statusCode == 200) {
+        print(response.data);
+      } else {
+        print('Failed to load data');
+      }
+    } catch (e) {
+      print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to fetch facts')),
+      );
+    }
+  }
+}
+
+class ListDataModel {
+  final String message;
+  final String buttonText;
+  final void Function()? onPressed;
+
+  ListDataModel({
+    required this.message,
+    required this.buttonText,
+    this.onPressed,
+  });
 }
