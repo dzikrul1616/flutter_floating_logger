@@ -13,8 +13,8 @@
 
 ## Installation 🔧
 
-To get started, add `anam_floating_logger` to your `pubspec.yaml`:
+To get started, add `floating_logger` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  anam_floating_logger: ^latest_version
+  floating_logger: ^latest_version
