@@ -10,7 +10,7 @@ class PagesFloatingLogger extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: logs.isEmpty
-          ? const CustomEmpty()
+          ? const FloatingLoggerEmpty()
           : ListView.builder(
               itemCount: logs.length,
               shrinkWrap: true,
@@ -26,8 +26,8 @@ class PagesFloatingLogger extends StatelessWidget {
   }
 }
 
-class CustomEmpty extends StatelessWidget {
-  const CustomEmpty({
+class FloatingLoggerEmpty extends StatelessWidget {
+  const FloatingLoggerEmpty({
     super.key,
     this.title,
     this.width = 100,

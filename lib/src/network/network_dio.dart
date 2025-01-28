@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'dart:developer';
 import 'package:dio/io.dart';
 import 'package:floating_logger/floating_logger.dart';
 
@@ -16,47 +14,70 @@ class DioLogger with DioMixin implements Dio {
     interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final curlCommand = _generateCurlCommand(options);
-          logRepository.addLog(LogRepositoryModel(
-            type: "Request",
-            path: options.path,
-            responseData: "",
-            data: options.data?.toString() ?? "",
-            response: options.method,
-            queryparameter: options.queryParameters.toString(),
-            message: "",
-            curl: curlCommand,
-          ));
+          final curlCommand = FormatLogger.generateCurlCommand(options);
+          LoggerLogsData.logMessage<RequestOptions>(
+            options,
+            AnsiColor.magenta,
+            curlCommand,
+            name: "REQ",
+          );
+          logRepository.addLog(
+            LogRepositoryModel(
+              type: "Request",
+              path: options.path,
+              responseData: "",
+              data: FormatLogger.parseJson(options.data),
+              response: options.method,
+              header: FormatLogger.parseJson(options.headers),
+              queryparameter: FormatLogger.parseJson(options.queryParameters),
+              message: "",
+              curl: curlCommand,
+            ),
+          );
           handler.next(options);
         },
         onResponse: (response, handler) async {
-          final curlCommand = _generateCurlCommand(response.requestOptions);
+          final curlCommand =
+              FormatLogger.generateCurlCommand(response.requestOptions);
+          LoggerLogsData.logMessage<Response<dynamic>>(
+            response,
+            AnsiColor.green,
+            curlCommand,
+            name: "RES",
+          );
           logRepository.addLog(LogRepositoryModel(
             type: "Response",
             path: response.requestOptions.path,
-            responseData: response.data?.toString() ?? "",
+            responseData: FormatLogger.parseJson(response.data),
             data: "",
             response: response.statusCode?.toString() ?? "Unknown",
             queryparameter: "",
+            header: FormatLogger.parseJson(response.headers),
             message: response.statusMessage,
             curl: curlCommand,
           ));
           handler.next(response);
         },
         onError: (error, handler) async {
-          final curlCommand = _generateCurlCommand(error.requestOptions);
+          final curlCommand =
+              FormatLogger.generateCurlCommand(error.requestOptions);
+          LoggerLogsData.logMessage<DioException>(
+            error,
+            AnsiColor.red,
+            curlCommand,
+            name: "ERR",
+          );
           logRepository.addLog(LogRepositoryModel(
             type: "Error",
             path: error.requestOptions.path,
-            responseData:
-                error.response?.data?.toString() ?? "No Response Data",
+            responseData: FormatLogger.parseJson(error.response?.data),
             data: error.message ?? "No Error Message",
             response: error.response?.statusCode?.toString() ?? "Unknown",
             queryparameter: "",
+            header: FormatLogger.parseJson(error.requestOptions.headers),
             message: error.response!.statusMessage,
             curl: curlCommand,
           ));
-          handler.next(error);
           handler.reject(error);
         },
       ),
@@ -64,18 +85,12 @@ class DioLogger with DioMixin implements Dio {
 
     interceptors.add(
       LogInterceptor(
-        responseBody: true,
-        requestBody: true,
-        logPrint: (object) {
-          try {
-            final dynamic json = jsonDecode(object.toString());
-            final String prettyJson =
-                const JsonEncoder.withIndent('  ').convert(json);
-            log(prettyJson);
-          } catch (e) {
-            log(object.toString());
-          }
-        },
+        error: false,
+        request: false,
+        requestHeader: false,
+        responseHeader: false,
+        responseBody: false,
+        requestBody: false,
       ),
     );
 
@@ -88,22 +103,4 @@ class DioLogger with DioMixin implements Dio {
   static DioLogger get instance => _instance;
 
   LogRepository get logs => _logRepository;
-
-  String _generateCurlCommand(RequestOptions options) {
-    final buffer = StringBuffer();
-
-    buffer.write('curl -X ${options.method} ');
-
-    options.headers.forEach((key, value) {
-      buffer.write('-H "$key: $value" ');
-    });
-
-    if (options.data != null) {
-      buffer.write('-d \'${options.data}\' ');
-    }
-
-    buffer.write('"${options.uri.toString()}"');
-
-    return buffer.toString();
-  }
 }

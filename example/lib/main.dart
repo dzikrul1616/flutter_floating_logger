@@ -38,16 +38,12 @@ class _MyHomePageState extends State<MyHomePage> {
       ListDataModel(
         message: 'Test Fetch Success 1',
         buttonText: 'Fetch Facts',
-        onPressed: () => fetchFacts(),
+        onPressed: () => fetchSuccess(),
       ),
       ListDataModel(
         message: 'Test Fetch Success 2',
         buttonText: 'Failure',
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failure button pressed')),
-          );
-        },
+        onPressed: () => fetchFailure(),
       ),
     ];
     super.initState();
@@ -87,18 +83,31 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Future<void> fetchFacts() async {
+  Future<void> fetchSuccess() async {
     try {
-      final response =
-          await DioLogger.instance.get('https://cat-fact.herokuapp.com/facts/');
+      final response = await DioLogger.instance.get(
+        'https://api.genderize.io',
+        queryParameters: {"name": "james"},
+      );
 
       if (response.statusCode == 200) {
-        print(response.data);
-      } else {
-        print('Failed to load data');
+        // your's management data
       }
     } catch (e) {
-      print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to fetch facts')),
+      );
+    }
+  }
+
+  Future<void> fetchFailure() async {
+    try {
+      final response = await DioLogger.instance.get('https://api.genderize.io');
+
+      if (response.statusCode == 200) {
+        // your's management data
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to fetch facts')),
       );

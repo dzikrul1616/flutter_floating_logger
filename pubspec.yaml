@@ -3,7 +3,7 @@ description: floating_logger is a Flutter library that provides a floating widge
 
 version: 0.0.1
 homepage: https://github.com/dzikrul1616
-repository: https://github.com/dzikrul1616/floating_logger
+repository: https://github.com/dzikrul1616/flutter_floating_logger
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -23,6 +23,5 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
- 
-flutter:
+  
  
