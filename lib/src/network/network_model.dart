@@ -1,9 +1,9 @@
 import 'package:floating_logger/floating_logger.dart'
-    show ValueNotifier, Equatable, DioLogger, FloatingLoggerItem;
+    show ValueNotifier, Equatable, DioLogger;
 
 /// Repository class for managing application logs.
 ///
-/// [FloatingLoggerItem] The LogRepository and LogRepositoryModel classes
+/// The LogRepository and LogRepositoryModel classes
 /// are used to manage and store logs displayed on the floating logger interface.
 /// The logs aredynamically updated through ValueNotifier, ensuring that the
 /// floating logger UI reflects real-time changes as new logs are added or cleared.
@@ -63,7 +63,7 @@ class LogRepositoryModel extends Equatable {
 
   /// A cURL representation of the request, useful for replicating the request in a terminal or tool.
   final String? curl;
-  
+
   const LogRepositoryModel({
     this.type,
     this.response,
@@ -79,14 +79,14 @@ class LogRepositoryModel extends Equatable {
   /// Factory constructor for creating a log instance from a JSON object.
   factory LogRepositoryModel.fromJson(Map<String, dynamic> json) {
     return LogRepositoryModel(
-      type: json["type"] ?? "-",
-      response: json["response"] ?? "-",
-      queryparameter: json["queryparameter"] ?? "-",
-      header: json["header"] ?? "-",
-      data: json["data"] ?? "-",
-      responseData: json["response_data"] ?? "-",
-      message: json["message"] ?? "-",
-      curl: json["curl"] ?? "-",
+      type: json["type"] ?? "",
+      response: json["response"] ?? "",
+      queryparameter: json["queryparameter"] ?? "",
+      header: json["header"] ?? "",
+      data: json["data"] ?? "",
+      responseData: json["response_data"] ?? "",
+      message: json["message"] ?? "",
+      curl: json["curl"] ?? "",
     );
   }
 

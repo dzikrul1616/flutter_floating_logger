@@ -1,43 +1,64 @@
+import 'widgets.dart';
 import 'package:floating_logger/floating_logger.dart';
+import 'package:floating_logger/src/network/network.dart';
 
+/// A widget that provides a floating logger control button.
+/// This button allows debugging API logs and can be dragged around the screen.
 class FloatingLoggerControl extends StatefulWidget {
   const FloatingLoggerControl({
     super.key,
     required this.child,
     this.isShow,
-    this.getPreference = true,
+    this.getPreference,
+    this.widgetItemBuilder,
   });
+
+  /// The main child widget (usually the app content).
   final Widget child;
+
+  /// Controls whether the floating button is shown or hidden.
   final ValueNotifier<bool>? isShow;
-  final bool getPreference;
+
+  /// Determines if the visibility preference should be retrieved.
+  final Future<bool> Function()? getPreference;
+
+  /// Custom widget builder for log items.
+  final Widget Function(
+    int index,
+    List<LogRepositoryModel> data,
+  )? widgetItemBuilder;
 
   @override
   State<FloatingLoggerControl> createState() => _FloatingLoggerControlState();
 }
 
 class _FloatingLoggerControlState extends State<FloatingLoggerControl> {
+  /// Stores the visibility state of the floating button.
   bool? isShow = true;
+
+  /// Stores the current position of the floating button.
   Offset position = const Offset(10, 100);
 
-  Future<void> getShow() async {
+  /// Retrieves the stored visibility preference.
+  Future<void> _getShowPreference() async {
+    bool data = true; // Default value if getPreference is null
+    if (widget.getPreference != null) {
+      data = await widget.getPreference!();
+    }
     setState(() {
-      isShow = widget.getPreference;
+      isShow = data;
     });
   }
 
   @override
   void initState() {
-    if (widget.getPreference) getShow();
     super.initState();
+    _getShowPreference();
   }
 
   @override
   Widget build(BuildContext context) {
-    bool showWidget = widget.isShow == null
-        ? isShow!
-        : widget.getPreference
-            ? isShow!
-            : widget.isShow!.value;
+    bool showWidget = widget.isShow?.value ?? isShow!;
     return Stack(
       children: [
         widget.child,
@@ -60,95 +81,29 @@ class _FloatingLoggerControlState extends State<FloatingLoggerControl> {
     );
   }
 
+  /// Builds the floating action button for opening the debug panel.
   Widget _buildFloatingActionButton() {
     return FloatingActionButton(
-      mouseCursor: MouseCursor.uncontrolled,
-      autofocus: true,
       tooltip: "Debug API",
       backgroundColor: const Color.fromARGB(255, 77, 159, 226),
-      onPressed: () => showModalBottomSheet<void>(
-        isScrollControlled: true,
-        context: context,
-        builder: (BuildContext context) {
-          return Wrap(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(15),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height * 0.9,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 100,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.grey[400],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20.0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          GestureDetector(
-                            onTap: () => DioLogger.instance.logs.clearLogs(),
-                            child: Container(
-                              width: 80,
-                              decoration: BoxDecoration(
-                                  border: Border.all(
-                                    width: 1.0,
-                                    color: Colors.red,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Center(
-                                  child: Text(
-                                    "Clear",
-                                    style: GoogleFonts.inter(
-                                      fontSize: 10.0,
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          ValueListenableBuilder<List<LogRepositoryModel>>(
-                            valueListenable:
-                                DioLogger.instance.logs.logsNotifier,
-                            builder: (context, logs, child) {
-                              return Text(
-                                'Total Data : ${logs.length}',
-                                style: GoogleFonts.inter(),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10.0),
-                      ValueListenableBuilder<List<LogRepositoryModel>>(
-                        valueListenable: DioLogger.instance.logs.logsNotifier,
-                        builder: (context, logs, child) {
-                          return PagesFloatingLogger(logs: logs);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+      onPressed: _showDebugPanel,
       child: const Icon(
         Icons.code_rounded,
         color: Colors.white,
       ),
+    );
+  }
+
+  /// Opens the debug panel in a bottom sheet.
+  void _showDebugPanel() {
+    showModalBottomSheet<void>(
+      isScrollControlled: true,
+      context: context,
+      builder: (BuildContext context) {
+        return FloatingLoggerModalBottomWidget(
+          widgetItemBuilder: widget.widgetItemBuilder,
+        );
+      },
     );
   }
 }

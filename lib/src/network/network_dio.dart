@@ -1,106 +1,95 @@
 import 'package:dio/io.dart';
 import 'package:floating_logger/floating_logger.dart';
+import 'package:floating_logger/src/network/network_model.dart';
+import '../utils/utils_network.dart';
+import 'package:flutter/foundation.dart'; // For kIsWeb
 
+/// A custom Dio instance with integrated logging functionality.
+///
+/// This class extends [DioMixin] and implements [Dio] to provide a singleton
+/// Dio instance that includes network request logging using [DioLogger].
+///
+/// It logs HTTP requests, responses, and errors while allowing further customization.
+///
+/// Usage:
+/// ```dart
+/// final dio = DioLogger.instance;
+/// dio.get('https://api.example.com');
+/// ```
 class DioLogger with DioMixin implements Dio {
+  /// The log repository used to store and manage logs.
   final LogRepository logRepository;
 
+  /// Private constructor to initialize DioLogger with custom configurations.
+  ///
+  /// - Sets default request options such as `contentType`, `connectTimeout`, and `receiveTimeout`.
+  /// - Adds custom interceptors for logging requests, responses, and errors.
+  /// - Uses [IOHttpClientAdapter] for HTTP request handling.
   DioLogger._(this.logRepository) {
+    // Set default request options for all HTTP requests.
     options = BaseOptions(
-      contentType: 'application/json; charset=utf-8',
-      connectTimeout: const Duration(milliseconds: 50000),
-      receiveTimeout: const Duration(milliseconds: 30000),
+      contentType:
+          'application/json; charset=utf-8', // Define content type as JSON with UTF-8 encoding.
+      connectTimeout: const Duration(
+          milliseconds: 50000), // Set connection timeout to 50 seconds.
+      receiveTimeout: const Duration(
+          milliseconds: 30000), // Set response receiving timeout to 30 seconds.
     );
 
+    // Conditional HTTP client adapter based on platform
+    if (kIsWeb) {
+      // Web-specific adapter (ensure this is used for Web)
+      httpClientAdapter = HttpClientAdapter();
+    } else {
+      // For non-web platforms like mobile, use IOHttpClientAdapter
+      httpClientAdapter = IOHttpClientAdapter();
+    }
+
+    // Add a custom interceptor to log request, response, and error details.
     interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          final curlCommand = FormatLogger.generateCurlCommand(options);
-          LoggerLogsData.logMessage<RequestOptions>(
-            options,
-            AnsiColor.magenta,
-            curlCommand,
-            name: "REQ",
-          );
-          logRepository.addLog(
-            LogRepositoryModel(
-              type: "Request",
-              path: options.path,
-              responseData: "",
-              data: FormatLogger.parseJson(options.data),
-              response: options.method,
-              header: FormatLogger.parseJson(options.headers),
-              queryparameter: FormatLogger.parseJson(options.queryParameters),
-              message: "",
-              curl: curlCommand,
-            ),
-          );
-          handler.next(options);
-        },
-        onResponse: (response, handler) async {
-          final curlCommand =
-              FormatLogger.generateCurlCommand(response.requestOptions);
-          LoggerLogsData.logMessage<Response<dynamic>>(
-            response,
-            AnsiColor.green,
-            curlCommand,
-            name: "RES",
-          );
-          logRepository.addLog(LogRepositoryModel(
-            type: "Response",
-            path: response.requestOptions.path,
-            responseData: FormatLogger.parseJson(response.data),
-            data: "",
-            response: response.statusCode?.toString() ?? "Unknown",
-            queryparameter: "",
-            header: FormatLogger.parseJson(response.headers),
-            message: response.statusMessage,
-            curl: curlCommand,
-          ));
-          handler.next(response);
-        },
-        onError: (error, handler) async {
-          final curlCommand =
-              FormatLogger.generateCurlCommand(error.requestOptions);
-          LoggerLogsData.logMessage<DioException>(
-            error,
-            AnsiColor.red,
-            curlCommand,
-            name: "ERR",
-          );
-          logRepository.addLog(LogRepositoryModel(
-            type: "Error",
-            path: error.requestOptions.path,
-            responseData: FormatLogger.parseJson(error.response?.data),
-            data: error.message ?? "No Error Message",
-            response: error.response?.statusCode?.toString() ?? "Unknown",
-            queryparameter: "",
-            header: FormatLogger.parseJson(error.requestOptions.headers),
-            message: error.response!.statusMessage,
-            curl: curlCommand,
-          ));
-          handler.reject(error);
-        },
+        onRequest: (options, handler) => LoggerNetworkSettings.onRequest(
+          options, // Capture request details before sending.
+          handler, // Pass the request handler.
+          logRepository, // Store logs in the repository.
+        ),
+        onResponse: (response, handler) => LoggerNetworkSettings.onResponse(
+          response, // Capture response details.
+          handler, // Pass the response handler.
+          logRepository, // Store logs in the repository.
+        ),
+        onError: (error, handler) => LoggerNetworkSettings.onError(
+          error, // Capture error details.
+          handler, // Pass the error handler.
+          logRepository, // Store logs in the repository.
+        ),
       ),
     );
 
+    // Add Dio's built-in logging interceptor (disabled to avoid duplicate logs).
     interceptors.add(
       LogInterceptor(
-        error: false,
-        request: false,
-        requestHeader: false,
-        responseHeader: false,
-        responseBody: false,
-        requestBody: false,
+        error: false, // Disable error logging.
+        request: false, // Disable request logging.
+        requestHeader: false, // Disable request header logging.
+        responseHeader: false, // Disable response header logging.
+        responseBody: false, // Disable response body logging.
+        requestBody: false, // Disable request body logging.
       ),
     );
-
-    httpClientAdapter = IOHttpClientAdapter();
   }
 
+  /// A private log repository instance to manage logs globally.
   static final LogRepository _logRepository = LogRepository();
+
+  /// A singleton instance of [DioLogger].
+  ///
+  /// This ensures that only one instance of DioLogger is used throughout the application.
   static final DioLogger _instance = DioLogger._(_logRepository);
 
+  /// Returns the singleton instance of [DioLogger].
   static DioLogger get instance => _instance;
 
+  /// Provides access to the log repository instance.
   LogRepository get logs => _logRepository;
 }

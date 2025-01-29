@@ -1,4 +1,5 @@
-export 'pages/pages.dart';
-export 'utils/utils.dart';
-export 'widgets/widgets.dart';
-export 'network/network.dart';
+export 'pages/pages.dart' hide PagesFloatingLogger;
+export 'utils/utils.dart'
+    hide AnsiColor, LoggerLogsData, FormatLogger, LoggerNetworkSettings;
+export 'widgets/widgets.dart' hide LoggerToast, FloatingLoggerRowText, FloatingLoggerModalBottomWidget, FloatingLoggerItem;
+export 'network/network.dart' hide LogRepository, LogRepositoryModel;
