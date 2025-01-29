@@ -25,7 +25,8 @@ class PagesFloatingLogger extends StatelessWidget {
       builder: (context, logs, child) {
         return Expanded(
           child: logs.isEmpty
-              ? _buildEmptyState() // Display empty state when no logs exist
+              ? _buildEmptyState(
+                  context) // Display empty state when no logs exist
               : _buildLogList(logs),
         );
       },
@@ -33,35 +34,38 @@ class PagesFloatingLogger extends StatelessWidget {
   }
 
   /// Builds a widget for an empty state when no logs are available.
-  Widget _buildEmptyState() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(
-          Icons.data_array,
-          size: 40,
-        ),
-        const SizedBox(height: 15),
-        Text(
-          "Data Not Found!", // Message when no data is found
-          textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+  Widget _buildEmptyState(BuildContext context) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.data_array,
+            size: 40,
           ),
-        ),
-        const SizedBox(height: 10.0),
-        Text(
-          "You don't have any data yet, please refresh or add data first!", // Suggestion message
-          textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            fontWeight: FontWeight.normal,
-            color: Colors.grey[600],
+          const SizedBox(height: 15),
+          Text(
+            "Data Not Found!", // Message when no data is found
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 10.0),
+          Text(
+            "You don't have any data yet, please refresh or add data first!", // Suggestion message
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.normal,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

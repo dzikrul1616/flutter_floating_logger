@@ -28,7 +28,6 @@ class FloatingLoggerItem extends StatefulWidget {
 class _FloatingLoggerItemState extends State<FloatingLoggerItem>
     with TickerProviderStateMixin {
   late AnimationController _expandAnimationController;
-  late Animation<double> _expandAnimation;
 
   // ValueNotifier to track expansion state of log item
   ValueNotifier<bool> isExpand = ValueNotifier(true);
@@ -40,8 +39,6 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _expandAnimation =
-        Tween<double>(begin: 0, end: 1).animate(_expandAnimationController);
   }
 
   @override
@@ -89,6 +86,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
       FlutterClipboard.copy(widget.data.curl!).then((value) {
         LoggerToast.successToast(
           "Successfully copied cURL data",
+          // ignore: use_build_context_synchronously
           context: context,
         );
       });
