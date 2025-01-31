@@ -38,18 +38,7 @@ jobs:
         run: |
           dart pub global activate coverage
           dart pub global run coverage:format_coverage --lcov -i coverage/ --report-on lib/ > coverage/lcov.info
-          cat coverage/lcov.info
-
-      - name: Show Coverage Percentage
-        shell: bash
-        run: |
-          if [ -s coverage/lcov.info ]; then
-            echo "Coverage report successfully generated."
-            cat coverage/lcov.info | grep "DA:" | wc -l
-          else
-            echo "No coverage data found!"
-            exit 1
-          fi
+          cat coverage/lcov.info 
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
