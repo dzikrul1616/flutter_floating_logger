@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class CustomSharedPreferences {
   CustomSharedPreferences();
   static const debugger = 'Debugger';
-  
+
   static Future<void> saveDebugger(bool value) async {
     final sharedPreferences = await SharedPreferences.getInstance();
     await sharedPreferences.setBool(debugger, value);

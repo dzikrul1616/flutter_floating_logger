@@ -1,7 +1,7 @@
 import 'package:floating_logger/floating_logger.dart';
 
 import 'developper_page.dart';
-import 'list_page.dart'; 
+import 'list_page.dart';
 
 class MyHomePage extends StatefulWidget {
   static const routeName = '/myPage';

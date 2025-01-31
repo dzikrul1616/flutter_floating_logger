@@ -84,9 +84,8 @@ class _FakeResponse_5<T1> extends _i1.SmartFake implements _i3.Response<T1> {
         );
 }
 
-class _FakeValueNotifier_6<T> extends _i1.SmartFake
-    implements _i3.ValueNotifier<T> {
-  _FakeValueNotifier_6(
+class _FakeDio_6 extends _i1.SmartFake implements _i3.Dio {
+  _FakeDio_6(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -95,9 +94,20 @@ class _FakeValueNotifier_6<T> extends _i1.SmartFake
         );
 }
 
-class _FakeInterceptorState_7<T> extends _i1.SmartFake
+class _FakeValueNotifier_7<T> extends _i1.SmartFake
+    implements _i3.ValueNotifier<T> {
+  _FakeValueNotifier_7(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeInterceptorState_8<T> extends _i1.SmartFake
     implements _i4.InterceptorState<T> {
-  _FakeInterceptorState_7(
+  _FakeInterceptorState_8(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -841,6 +851,7 @@ class MockDioLogger extends _i1.Mock implements _i3.DioLogger {
     _i3.ProgressCallback? onReceiveProgress,
     _i3.CancelToken? cancelToken,
     bool? deleteOnError = true,
+    _i3.FileAccessMode? fileAccessMode = _i3.FileAccessMode.write,
     String? lengthHeader = r'content-length',
     Object? data,
     _i3.Options? options,
@@ -856,6 +867,7 @@ class MockDioLogger extends _i1.Mock implements _i3.DioLogger {
             #onReceiveProgress: onReceiveProgress,
             #cancelToken: cancelToken,
             #deleteOnError: deleteOnError,
+            #fileAccessMode: fileAccessMode,
             #lengthHeader: lengthHeader,
             #data: data,
             #options: options,
@@ -874,6 +886,7 @@ class MockDioLogger extends _i1.Mock implements _i3.DioLogger {
               #onReceiveProgress: onReceiveProgress,
               #cancelToken: cancelToken,
               #deleteOnError: deleteOnError,
+              #fileAccessMode: fileAccessMode,
               #lengthHeader: lengthHeader,
               #data: data,
               #options: options,
@@ -893,6 +906,7 @@ class MockDioLogger extends _i1.Mock implements _i3.DioLogger {
               #onReceiveProgress: onReceiveProgress,
               #cancelToken: cancelToken,
               #deleteOnError: deleteOnError,
+              #fileAccessMode: fileAccessMode,
               #lengthHeader: lengthHeader,
               #data: data,
               #options: options,
@@ -909,6 +923,7 @@ class MockDioLogger extends _i1.Mock implements _i3.DioLogger {
     Map<String, dynamic>? queryParameters,
     _i3.CancelToken? cancelToken,
     bool? deleteOnError = true,
+    _i3.FileAccessMode? fileAccessMode = _i3.FileAccessMode.write,
     String? lengthHeader = r'content-length',
     Object? data,
     _i3.Options? options,
@@ -925,6 +940,7 @@ class MockDioLogger extends _i1.Mock implements _i3.DioLogger {
             #queryParameters: queryParameters,
             #cancelToken: cancelToken,
             #deleteOnError: deleteOnError,
+            #fileAccessMode: fileAccessMode,
             #lengthHeader: lengthHeader,
             #data: data,
             #options: options,
@@ -944,6 +960,7 @@ class MockDioLogger extends _i1.Mock implements _i3.DioLogger {
               #queryParameters: queryParameters,
               #cancelToken: cancelToken,
               #deleteOnError: deleteOnError,
+              #fileAccessMode: fileAccessMode,
               #lengthHeader: lengthHeader,
               #data: data,
               #options: options,
@@ -964,6 +981,7 @@ class MockDioLogger extends _i1.Mock implements _i3.DioLogger {
               #queryParameters: queryParameters,
               #cancelToken: cancelToken,
               #deleteOnError: deleteOnError,
+              #fileAccessMode: fileAccessMode,
               #lengthHeader: lengthHeader,
               #data: data,
               #options: options,
@@ -1103,6 +1121,52 @@ class MockDioLogger extends _i1.Mock implements _i3.DioLogger {
           ),
         )),
       ) as _i5.Future<_i3.Response<T>>);
+
+  @override
+  _i3.Dio clone({
+    _i3.BaseOptions? options,
+    _i3.Interceptors? interceptors,
+    _i3.HttpClientAdapter? httpClientAdapter,
+    _i3.Transformer? transformer,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #clone,
+          [],
+          {
+            #options: options,
+            #interceptors: interceptors,
+            #httpClientAdapter: httpClientAdapter,
+            #transformer: transformer,
+          },
+        ),
+        returnValue: _FakeDio_6(
+          this,
+          Invocation.method(
+            #clone,
+            [],
+            {
+              #options: options,
+              #interceptors: interceptors,
+              #httpClientAdapter: httpClientAdapter,
+              #transformer: transformer,
+            },
+          ),
+        ),
+        returnValueForMissingStub: _FakeDio_6(
+          this,
+          Invocation.method(
+            #clone,
+            [],
+            {
+              #options: options,
+              #interceptors: interceptors,
+              #httpClientAdapter: httpClientAdapter,
+              #transformer: transformer,
+            },
+          ),
+        ),
+      ) as _i3.Dio);
 }
 
 /// A class which mocks [LogRepository].
@@ -1113,12 +1177,12 @@ class MockLogRepository extends _i1.Mock implements _i2.LogRepository {
   _i3.ValueNotifier<List<_i2.LogRepositoryModel>> get logsNotifier =>
       (super.noSuchMethod(
         Invocation.getter(#logsNotifier),
-        returnValue: _FakeValueNotifier_6<List<_i2.LogRepositoryModel>>(
+        returnValue: _FakeValueNotifier_7<List<_i2.LogRepositoryModel>>(
           this,
           Invocation.getter(#logsNotifier),
         ),
         returnValueForMissingStub:
-            _FakeValueNotifier_6<List<_i2.LogRepositoryModel>>(
+            _FakeValueNotifier_7<List<_i2.LogRepositoryModel>>(
           this,
           Invocation.getter(#logsNotifier),
         ),
@@ -1152,13 +1216,13 @@ class MockRequestInterceptorHandler extends _i1.Mock
   _i5.Future<_i4.InterceptorState<dynamic>> get future => (super.noSuchMethod(
         Invocation.getter(#future),
         returnValue: _i5.Future<_i4.InterceptorState<dynamic>>.value(
-            _FakeInterceptorState_7<dynamic>(
+            _FakeInterceptorState_8<dynamic>(
           this,
           Invocation.getter(#future),
         )),
         returnValueForMissingStub:
             _i5.Future<_i4.InterceptorState<dynamic>>.value(
-                _FakeInterceptorState_7<dynamic>(
+                _FakeInterceptorState_8<dynamic>(
           this,
           Invocation.getter(#future),
         )),
@@ -1222,13 +1286,13 @@ class MockResponseInterceptorHandler extends _i1.Mock
   _i5.Future<_i4.InterceptorState<dynamic>> get future => (super.noSuchMethod(
         Invocation.getter(#future),
         returnValue: _i5.Future<_i4.InterceptorState<dynamic>>.value(
-            _FakeInterceptorState_7<dynamic>(
+            _FakeInterceptorState_8<dynamic>(
           this,
           Invocation.getter(#future),
         )),
         returnValueForMissingStub:
             _i5.Future<_i4.InterceptorState<dynamic>>.value(
-                _FakeInterceptorState_7<dynamic>(
+                _FakeInterceptorState_8<dynamic>(
           this,
           Invocation.getter(#future),
         )),
@@ -1285,13 +1349,13 @@ class MockErrorInterceptorHandler extends _i1.Mock
   _i5.Future<_i4.InterceptorState<dynamic>> get future => (super.noSuchMethod(
         Invocation.getter(#future),
         returnValue: _i5.Future<_i4.InterceptorState<dynamic>>.value(
-            _FakeInterceptorState_7<dynamic>(
+            _FakeInterceptorState_8<dynamic>(
           this,
           Invocation.getter(#future),
         )),
         returnValueForMissingStub:
             _i5.Future<_i4.InterceptorState<dynamic>>.value(
-                _FakeInterceptorState_7<dynamic>(
+                _FakeInterceptorState_8<dynamic>(
           this,
           Invocation.getter(#future),
         )),

@@ -1,4 +1,4 @@
-import 'package:floating_logger/floating_logger.dart'; 
+import 'package:floating_logger/floating_logger.dart';
 
 import '../utils/preferences.dart';
 import 'home_page.dart';

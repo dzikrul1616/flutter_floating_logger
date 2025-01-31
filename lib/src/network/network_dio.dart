@@ -2,7 +2,7 @@ import 'package:dio/io.dart';
 import 'package:floating_logger/floating_logger.dart';
 import 'package:floating_logger/src/network/network_model.dart';
 import '../utils/utils_network.dart';
-import 'package:flutter/foundation.dart'; // For kIsWeb
+import 'package:flutter/foundation.dart' as foundation; // For kIsWeb
 
 /// A custom Dio instance with integrated logging functionality.
 ///
@@ -19,7 +19,7 @@ import 'package:flutter/foundation.dart'; // For kIsWeb
 class DioLogger with DioMixin implements Dio {
   /// The log repository used to store and manage logs.
   final LogRepository logRepository;
-  
+
   /// Private constructor to initialize DioLogger with custom configurations.
   ///
   /// - Sets default request options such as `contentType`, `connectTimeout`, and `receiveTimeout`.
@@ -37,7 +37,7 @@ class DioLogger with DioMixin implements Dio {
     );
 
     // Conditional HTTP client adapter based on platform
-    if (kIsWeb) {
+    if (foundation.kIsWeb) {
       // Web-specific adapter (ensure this is used for Web)
       httpClientAdapter = HttpClientAdapter();
     } else {

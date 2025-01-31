@@ -3,7 +3,7 @@ import 'package:floating_logger/floating_logger.dart';
 
 import '../utils/models.dart';
 import '../widget/refresh.dart';
-import 'detail_item.dart'; 
+import 'detail_item.dart';
 
 class ListPage extends StatefulWidget {
   static const routeName = "/listPage";
@@ -357,7 +357,7 @@ class _ListPageState extends State<ListPage> {
   }
 
   Future<void> fetchSuccess() async {
-    try { 
+    try {
       final response = await DioLogger.instance.get(
         'https://fakestoreapi.com/products',
         options: Options(headers: {

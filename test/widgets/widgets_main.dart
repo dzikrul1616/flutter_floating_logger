@@ -2,7 +2,7 @@ import '../test.dart';
 
 class WidgetsTestMain {
   static void main() {
-    widgetFloatingLoggerItemTest(); 
+    widgetFloatingLoggerItemTest();
     widgetFloatingLoggerControlTest();
     widgetFloatingLoggerRowTextTest();
     widgetFloatingLoggerShowModalTest();

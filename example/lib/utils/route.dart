@@ -3,7 +3,7 @@ import 'preferences.dart';
 import '../pages/detail_item.dart';
 import '../pages/home_page.dart';
 import '../pages/list_page.dart';
-import '../pages/developper_page.dart'; 
+import '../pages/developper_page.dart';
 
 class RouteGenerator {
   static MaterialPageRoute<dynamic> pageRoute(
@@ -57,4 +57,3 @@ class RouteGenerator {
     }
   }
 }
- 

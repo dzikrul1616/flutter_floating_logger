@@ -6,9 +6,9 @@ void networkDio() {
     late DioLogger dio;
     late MockDioLogger mockDio;
 
-    setUp(() { 
+    setUp(() {
       mockDio = MockDioLogger();
- 
+
       when(mockDio.options).thenReturn(BaseOptions(
         connectTimeout: Duration(milliseconds: 50000),
         receiveTimeout: Duration(milliseconds: 30000),
@@ -66,7 +66,7 @@ void networkDio() {
     test('LogRepository should store logs and reflect changes in length',
         () async {
       final initialLogsCount = dio.logs.logsNotifier.value.length;
- 
+
       await dio.get('https://jsonplaceholder.typicode.com/posts/1');
 
       final newLog = LogRepositoryModel(
