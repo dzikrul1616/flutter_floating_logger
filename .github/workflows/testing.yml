@@ -34,12 +34,6 @@ jobs:
       - name: Run Flutter tests with coverage
         run: flutter test --coverage
 
-      - name: Generate LCOV info
-        run: |
-          dart pub global activate coverage
-          dart pub global run coverage:format_coverage --lcov -i coverage/ --report-on lib/ > coverage/lcov.info
-          cat coverage/lcov.info 
-
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
