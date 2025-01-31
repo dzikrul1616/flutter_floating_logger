@@ -59,26 +59,40 @@ class _FloatingLoggerControlState extends State<FloatingLoggerControl> {
   @override
   Widget build(BuildContext context) {
     bool showWidget = widget.isShow?.value ?? isShow!;
-    return Stack(
-      children: [
-        widget.child,
-        if (showWidget)
-          Positioned(
-            left: position.dx,
-            top: position.dy,
-            child: Draggable(
-              feedback: _buildFloatingActionButton(),
-              childWhenDragging: const SizedBox.shrink(),
-              onDragEnd: (details) {
-                setState(() {
-                  position = details.offset;
-                });
-              },
-              child: _buildFloatingActionButton(),
+    return LayoutBuilder(builder: (context, constraints) {
+      return Stack(
+        children: [
+          widget.child,
+          if (showWidget)
+            Positioned(
+              left: position.dx.clamp(0, constraints.maxWidth - 56),
+              top: position.dy.clamp(0, constraints.maxHeight - 56),
+              child: Draggable(
+                feedback: _buildFloatingActionButton(),
+                childWhenDragging: const SizedBox.shrink(),
+                onDragEnd: (details) {
+                  setState(() {
+                    double newX = details.offset.dx -
+                        (MediaQuery.of(context).size.width -
+                                constraints.maxWidth) /
+                            2;
+                    double newY = details.offset.dy -
+                        (MediaQuery.of(context).size.height -
+                                constraints.maxHeight) /
+                            2;
+
+                    position = Offset(
+                      newX.clamp(0, constraints.maxWidth - 56),
+                      newY.clamp(0, constraints.maxHeight - 56),
+                    );
+                  });
+                },
+                child: _buildFloatingActionButton(),
+              ),
             ),
-          ),
-      ],
-    );
+        ],
+      );
+    });
   }
 
   /// Builds the floating action button for opening the debug panel.

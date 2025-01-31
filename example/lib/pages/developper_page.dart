@@ -1,9 +1,8 @@
-import 'package:floating_logger/floating_logger.dart';
-import 'package:example/main.dart';
-import '../utils/utils.dart';
+import 'package:floating_logger/floating_logger.dart'; 
 
-/// Go to [RouteGenerator] for applying testing widget
-///
+import '../utils/preferences.dart';
+import 'home_page.dart';
+
 class DevelopperMode extends StatefulWidget {
   static const routeName = '/developper';
   const DevelopperMode({super.key});
@@ -42,6 +41,29 @@ class _DevelopperModeState extends State<DevelopperMode> {
     return FloatingLoggerControl(
       /// get local preference hide and unhide in global state
       getPreference: newMethod,
+      widgetItemBuilder: (index, data) {
+        final item = data[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Card(
+            child: ListTile(
+              title: Text('${item.type!} [${item.response}]',
+                  style: TextStyle(fontSize: 12.0)),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("URL   : ${item.path}",
+                      style: TextStyle(fontSize: 12.0)),
+                  Text("Data  : ${item.data}",
+                      style: TextStyle(fontSize: 12.0)),
+                  Text("cURL  : ${item.curl}",
+                      style: TextStyle(fontSize: 12.0)),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
 
       /// ValueListenable for change visibility on/off
       isShow: isShowDebuggerNotifier,
@@ -54,31 +76,35 @@ class _DevelopperModeState extends State<DevelopperMode> {
         },
         child: Scaffold(
           appBar: AppBar(
-            leading: IconButton(
-              onPressed: () =>
-                  Navigator.pushReplacementNamed(context, MyHomePage.routeName),
-              icon: Icon(
-                Icons.arrow_back,
-              ),
-            ),
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-            title: Text("Developper Test"),
+            title: const Text("Developper Test"),
           ),
           body: preferences
               ? Padding(
                   padding: const EdgeInsets.all(10),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            "Debugger API",
-                            style: GoogleFonts.inter(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Debugger API",
+                                style: GoogleFonts.inter(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                "Deactivate Floating Debugger",
+                                style: GoogleFonts.inter(
+                                  fontSize: 12.0,
+                                  fontWeight: FontWeight.normal,
+                                ),
+                              ),
+                            ],
                           ),
                           Switch(
                             activeTrackColor: Colors.blue,
@@ -96,7 +122,7 @@ class _DevelopperModeState extends State<DevelopperMode> {
                     ],
                   ),
                 )
-              : SizedBox(
+              : const SizedBox(
                   width: 24,
                   height: 24,
                   child: CircularProgressIndicator(),

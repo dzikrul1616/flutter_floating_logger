@@ -19,7 +19,7 @@ import 'package:flutter/foundation.dart'; // For kIsWeb
 class DioLogger with DioMixin implements Dio {
   /// The log repository used to store and manage logs.
   final LogRepository logRepository;
-
+  
   /// Private constructor to initialize DioLogger with custom configurations.
   ///
   /// - Sets default request options such as `contentType`, `connectTimeout`, and `receiveTimeout`.

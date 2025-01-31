@@ -67,7 +67,7 @@ class LoggerLogsData {
   /// Extracts message response from the given data.
   /// Supports `RequestOptions`, `Response`, and `DioException`.
   static String _getMessage<T>(T data) {
-    if (data is RequestOptions) return "";
+    if (data is RequestOptions) return "-";
     if (data is Response<dynamic>) return data.statusMessage.toString();
     if (data is DioException) return data.message ?? "No Error Message";
     return data.toString(); // Fallback for unsupported data types
@@ -99,7 +99,7 @@ class LoggerLogsData {
     final logMessage = "${color}Method  :${AnsiColor.reset} $method\n"
         "${color}Url     :${AnsiColor.reset} $url\n"
         "${color}Status  :${AnsiColor.reset} $statusCode\n"
-        "${color}Message :${AnsiColor.reset} $message\n"
+        "${color}Message :${AnsiColor.reset} ${message.isEmpty ? '-' : message}\n"
         "${color}Param   :\n${AnsiColor.reset}${FormatLogger.parseJson(param)}\n"
         "${color}Data    :\n${AnsiColor.reset}${FormatLogger.parseJson(dataText)}\n"
         "${color}Headers :\n${AnsiColor.reset}${FormatLogger.parseJson(headers)}\n"
