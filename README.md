@@ -1,6 +1,6 @@
 <div align="center">
 
-![Live Demo](https://github.com/dzikrul1616/dzikrul1616/blob/main/logger%20logo.png)
+![Live Demo](images/logger%20logo.png)
 
 [![Stars](https://img.shields.io/github/stars/dzikrul1616/flutter_floating_logger?style=social)](https://github.com/dzikrul1616/flutter_floating_logger)
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/dzikrul1616/flutter_floating_logger/testing.yml?label=CI&style=social)](https://github.com/dzikrul1616/flutter_floating_logger/actions/workflows/testing.yml)
@@ -42,7 +42,7 @@ import 'package:floating_logger/floating_logger.dart';
 
 ## Demo 🎥
 
-![logo](https://github.com/dzikrul1616/dzikrul1616/blob/main/preview.gif)
+![logo](images/preview.gif)
 
 <div align="center">
 
@@ -57,13 +57,13 @@ Check out the live demo of **Floating Logger**:
 
 Here is the preview of the debug console log for the HTTP request:
 
-![logo](https://github.com/dzikrul1616/dzikrul1616/blob/main/%5BGET%5Drequest_debug_api.png)  
+![logo](images/%5BGET%5Drequest_debug_api.png)  
 *Above: Example of the HTTP request.*
 
-![logo](https://github.com/dzikrul1616/dzikrul1616/blob/main/%5BGET%5Dresponse_debug_api.png)  
+![logo](images/%5BGET%5Dresponse_debug_api.png)  
 *Middle: HTTP response log.*
 
-![logo](https://github.com/dzikrul1616/dzikrul1616/blob/main/%5BGET%5Derror_debug_api.png)  
+![logo](images/%5BGET%5Derror_debug_api.png)  
 *Below: HTTP error log.*
 
 
