@@ -58,7 +58,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
         valueListenable: isExpand,
         builder: (context, value, child) {
           return GestureDetector(
-            onLongPress: () => _copyCurlToClipboard(context),
+            onLongPress: () => copyCurlToClipboard(context),
             onTap: () {
               isExpand.value = !value;
               if (value) {
@@ -76,7 +76,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
   }
 
   /// Copies the cURL command to clipboard and shows a toast message.
-  void _copyCurlToClipboard(BuildContext context) {
+  void copyCurlToClipboard(BuildContext context) {
     if (widget.data.curl!.isEmpty) {
       LoggerToast.errorToast(
         "Failed to copy, no data available",
@@ -186,7 +186,9 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
         Text('[${widget.data.type}]',
             style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
         Text(
-          widget.data.response!.isEmpty ? '' : '[${widget.data.response}]',
+          widget.data.response == null || widget.data.response!.isEmpty
+              ? ''
+              : '[${widget.data.response}]',
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
         widget.data.type == "Request"

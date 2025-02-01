@@ -1,14 +1,28 @@
 <div align="center">
+  <img src="images/logger%20logo.png" alt="Live Demo" />
+  <br />
 
-![Live Demo](images/logger%20logo.png)
+  <a href="https://app.codecov.io/gh/dzikrul1616/flutter_floating_logger">
+    <img src="https://codecov.io/gh/dzikrul1616/flutter_floating_logger/branch/main/graph/badge.svg" alt="Codecov" />
+  </a>
 
-[![Stars](https://img.shields.io/github/stars/dzikrul1616/flutter_floating_logger?style=social)](https://github.com/dzikrul1616/flutter_floating_logger)
-[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/dzikrul1616/flutter_floating_logger/testing.yml?label=CI&style=social)](https://github.com/dzikrul1616/flutter_floating_logger/actions/workflows/testing.yml)
-![Version](https://img.shields.io/badge/pub-v0.0.1-orange.svg) 
-![License](https://img.shields.io/badge/License-MIT-blue.svg)
-[![Issues](https://img.shields.io/badge/Issues-Open-brightgreen.svg)](https://github.com/dzikrul1616/flutter_floating_logger/issues) 
+  <br />
+  <a href="https://github.com/dzikrul1616/flutter_floating_logger">
+    <img src="https://img.shields.io/github/stars/dzikrul1616/flutter_floating_logger?style=social" alt="Stars" />
+  </a>
+  <a href="https://github.com/dzikrul1616/flutter_floating_logger/actions/workflows/testing.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/dzikrul1616/flutter_floating_logger/testing.yml?label=CI&style=social" alt="GitHub Actions" />
+  </a>
+  <img src="https://img.shields.io/badge/pub-v0.0.4-orange.svg" alt="Version" />
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License" />
+  <a href="https://github.com/dzikrul1616/flutter_floating_logger/issues">
+    <img src="https://img.shields.io/badge/Issues-Open-brightgreen.svg" alt="Issues" />
+  </a>
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge)](https://dzikrul1616.github.io/preview_floating_logger.github.io/)
+  <br />
+  <a href="https://dzikrul1616.github.io/preview_floating_logger.github.io/">
+    <img src="https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge" alt="Live Demo" />
+  </a>
 </div>
 
 # floating_logger 🚀
@@ -185,6 +199,61 @@ return FloatingLoggerControl(
   child: child,
 );
 ```
+
+## 🛠️ Adding a Single Custom Interceptor
+
+To add a single custom interceptor to `DioLogger`, you can use the `addInterceptor` method. Here’s an example of adding a custom `InterceptorsWrapper` that handles the `onResponse` and `onError` events.
+
+```dart
+/// Example to add a custom single interceptor
+DioLogger.instance.addInterceptor(
+  InterceptorsWrapper(
+    onResponse: (response, handler) {
+      // Add custom logic for onResponse
+      print('Custom onResponse interceptor');
+      handler.next(response);
+    },
+    onError: (error, handler) {
+      // Add custom logic for onError
+      print('Custom onError interceptor');
+      handler.next(error);
+    },
+  ),
+);
+```
+Explanation:
+- `onResponse` : This is triggered when a successful response is received. You can add custom logic here, such as logging or modifying the response.
+- `onError` : This is triggered when an error occurs. You can handle errors, log them, or perform recovery actions.
+- `handler.next()` : This ensures the interceptor chain continues to the next interceptor or the final handler.
+
+## 🛠️ Add List Custom Interceptor
+
+If you want to add multiple interceptors at once, you can use the `addListInterceptor` method. This is useful when you have several interceptors that need to be applied together.
+
+Here’s an example:
+
+```dart
+DioLogger.instance.addListInterceptor(
+  [
+    InterceptorsWrapper(
+      onResponse: (response, handler) {
+        // Add custom logic for onResponse
+        print('Custom onResponse interceptor');
+        handler.next(response);
+      },
+      onError: (error, handler) {
+        // Add custom logic for onError
+        print('Custom onError interceptor');
+        handler.next(error);
+      },
+    ),
+    // You can add more interceptors in the list
+  ],
+);
+```
+Explanation:
+- List of Interceptors: You can define multiple InterceptorsWrapper objects in a list. Each interceptor will be executed in the order they are added.
+- Order Matters: The first interceptor in the list will be executed first, followed by the next, and so on.
 
 ---
 

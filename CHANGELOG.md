@@ -1,3 +1,8 @@
+## [0.0.4] - Improve Performance Interceptor
+* [new] add interceptor in Dio Logger
+* [new] add list interceptor in Dio Logger
+* update coverage code 95%
+
 ## [0.0.3] - v.0.0.3 Documentation Image and gift Fixed
 * [fix] Assets image read.me 
 
