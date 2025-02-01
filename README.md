@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="images/logger%20logo.png" alt="Live Demo" />
+  <img src="https://github.com/dzikrul1616/flutter_floating_logger/blob/main/images/logger%20logo.png?raw=true" alt="Logo Floating Logger" />
   <br />
 
   <a href="https://app.codecov.io/gh/dzikrul1616/flutter_floating_logger">
@@ -13,7 +13,7 @@
   <a href="https://github.com/dzikrul1616/flutter_floating_logger/actions/workflows/testing.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/dzikrul1616/flutter_floating_logger/testing.yml?label=CI&style=social" alt="GitHub Actions" />
   </a>
-  <img src="https://img.shields.io/badge/pub-v0.0.4-orange.svg" alt="Version" />
+  <img src="https://img.shields.io/badge/pub-v0.0.5-orange.svg" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License" />
   <a href="https://github.com/dzikrul1616/flutter_floating_logger/issues">
     <img src="https://img.shields.io/badge/Issues-Open-brightgreen.svg" alt="Issues" />

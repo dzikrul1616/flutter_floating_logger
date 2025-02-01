@@ -68,3 +68,20 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+/// Example 
+// FloatingLoggerControl( 
+//    child: page,
+// ),
+
+/// need using DioLogger
+// final response = await DioLogger.instance.get(
+//         'https://api.genderize.io',
+//         options: Options(headers: {
+//           "content-type": "application/json",
+//         }),
+//         queryParameters: {
+//           "name": "james",
+//         },
+//       );
+ 
