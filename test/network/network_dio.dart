@@ -4,6 +4,9 @@ import '../test.dart';
 
 void networkDio() {
   group('Network Dio', () {
+    late DioLogger dioLogger;
+    late MockInterceptor mockInterceptor;
+    late MockInterceptor mockInterceptor2;
     late DioLogger dio;
     late MockDioLogger mockDio;
     late LogRepository logRepository;
@@ -15,12 +18,15 @@ void networkDio() {
     late MockResponseInterceptorHandler mockResponseHandler;
     late MockErrorInterceptorHandler mockErrorHandler;
     setUp(() {
+      dioLogger = DioLogger.instance;
       mockDio = MockDioLogger();
       mockLogRepository = MockLogRepository();
       mockRequestOptions = MockRequestOptions();
       mockResponse = MockResponse();
       logRepository = LogRepository();
       mockDioException = MockDioException();
+      mockInterceptor = MockInterceptor();
+      mockInterceptor2 = MockInterceptor();
       mockRequestHandler = MockRequestInterceptorHandler();
       mockResponseHandler = MockResponseInterceptorHandler();
       mockErrorHandler = MockErrorInterceptorHandler();
@@ -165,6 +171,20 @@ void networkDio() {
 
       expect(logRepository.logsNotifier.value[0], log2);
       expect(logRepository.logsNotifier.value[1], log1);
+    });
+    test('addInterceptor should add a single interceptor', () {
+      dioLogger.addInterceptor(mockInterceptor);
+
+      expect(dioLogger.interceptors.length, 4);
+      expect(dioLogger.interceptors[3], mockInterceptor);
+    });
+
+    test('addListInterceptor should add multiple interceptors', () {
+      dioLogger.addListInterceptor([mockInterceptor, mockInterceptor2]);
+ 
+      expect(dioLogger.interceptors.length, 6);
+      expect(dioLogger.interceptors[4], mockInterceptor);
+      expect(dioLogger.interceptors[5], mockInterceptor2);
     });
   });
 }

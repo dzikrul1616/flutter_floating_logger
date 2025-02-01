@@ -6,6 +6,7 @@ import '../test.dart';
   MockSpec<Response>(),
   MockSpec<DioLogger>(),
   MockSpec<LoggerToast>(),
+  MockSpec<Interceptor>(),
   MockSpec<DioException>(),
   MockSpec<LogRepository>(),
   MockSpec<RequestOptions>(),

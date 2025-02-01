@@ -430,6 +430,25 @@ class MockDioLogger extends _i1.Mock implements _i5.DioLogger {
       ) as _i5.Interceptors);
 
   @override
+  void addInterceptor(_i5.Interceptor? interceptor) => super.noSuchMethod(
+        Invocation.method(
+          #addInterceptor,
+          [interceptor],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void addListInterceptor(List<_i5.Interceptor>? interceptorsList) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #addListInterceptor,
+          [interceptorsList],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   void close({bool? force = false}) => super.noSuchMethod(
         Invocation.method(
           #close,
@@ -1403,6 +1422,59 @@ class MockLoggerToast extends _i1.Mock implements _i9.LoggerToast {
         Invocation.method(
           #$howErrorToast,
           [message],
+        ),
+        returnValueForMissingStub: null,
+      );
+}
+
+/// A class which mocks [Interceptor].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockInterceptor extends _i1.Mock implements _i5.Interceptor {
+  @override
+  void onRequest(
+    _i2.RequestOptions? options,
+    _i5.RequestInterceptorHandler? handler,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #onRequest,
+          [
+            options,
+            handler,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void onResponse(
+    _i5.Response<dynamic>? response,
+    _i5.ResponseInterceptorHandler? handler,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #onResponse,
+          [
+            response,
+            handler,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void onError(
+    _i5.DioException? err,
+    _i5.ErrorInterceptorHandler? handler,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #onError,
+          [
+            err,
+            handler,
+          ],
         ),
         returnValueForMissingStub: null,
       );

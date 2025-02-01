@@ -45,26 +45,8 @@ class DioLogger with DioMixin implements Dio {
       httpClientAdapter = IOHttpClientAdapter();
     }
 
-    // Add a custom interceptor to log request, response, and error details.
-    interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) => LoggerNetworkSettings.onRequest(
-          options, // Capture request details before sending.
-          handler, // Pass the request handler.
-          logRepository, // Store logs in the repository.
-        ),
-        onResponse: (response, handler) => LoggerNetworkSettings.onResponse(
-          response, // Capture response details.
-          handler, // Pass the response handler.
-          logRepository, // Store logs in the repository.
-        ),
-        onError: (error, handler) => LoggerNetworkSettings.onError(
-          error, // Capture error details.
-          handler, // Pass the error handler.
-          logRepository, // Store logs in the repository.
-        ),
-      ),
-    );
+    // Add default interceptors
+    _addDefaultInterceptors();
 
     // Add Dio's built-in logging interceptor (disabled to avoid duplicate logs).
     interceptors.add(
@@ -92,4 +74,38 @@ class DioLogger with DioMixin implements Dio {
 
   /// Provides access to the log repository instance.
   LogRepository get logs => _logRepository;
+
+  // Add a custom interceptor to log request, response, and error details.
+  void _addDefaultInterceptors() {
+    interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) => LoggerNetworkSettings.onRequest(
+          options,
+          handler,
+          logRepository,
+        ),
+        onResponse: (response, handler) => LoggerNetworkSettings.onResponse(
+          response,
+          handler,
+          logRepository,
+        ),
+        onError: (error, handler) => LoggerNetworkSettings.onError(
+          error,
+          handler,
+          logRepository,
+        ),
+      ),
+    );
+  }
+
+  /// Method to add custom interceptors
+  void addInterceptor(Interceptor interceptor) {
+    interceptors.add(interceptor);
+  }
+
+  void addListInterceptor(List<Interceptor> interceptorsList) {
+    for (var interceptor in interceptorsList) {
+      interceptors.add(interceptor);
+    }
+  }
 }
