@@ -4,7 +4,7 @@
 
 [![Stars](https://img.shields.io/github/stars/dzikrul1616/flutter_floating_logger?style=social)](https://github.com/dzikrul1616/flutter_floating_logger)
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/dzikrul1616/flutter_floating_logger/testing.yml?label=CI&style=social)](https://github.com/dzikrul1616/flutter_floating_logger/actions/workflows/testing.yml)
-![Version](https://img.shields.io/badge/pub-v0.0.1-orange.svg) 
+![Version](https://img.shields.io/badge/pub-v0.0.4-orange.svg) 
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 [![Issues](https://img.shields.io/badge/Issues-Open-brightgreen.svg)](https://github.com/dzikrul1616/flutter_floating_logger/issues) 
 

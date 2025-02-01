@@ -1,7 +1,7 @@
 name: floating_logger
 description: floating_logger is a Flutter library that provides a floating widget for real-time API request logs.
 
-version: 0.0.3
+version: 0.0.4
 homepage: https://github.com/dzikrul1616/flutter_floating_logger
 repository: https://github.com/dzikrul1616/flutter_floating_logger
 issue_tracker: https://github.com/dzikrul1616/flutter_floating_logger/issues
@@ -30,6 +30,8 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   build_runner: ^2.4.13
-  mockito: ^5.4.4
+  mockito: ^5.4.4 
   
- 
+screenshots:
+  - description: The flutter bloc package logo.
+    path: screenshots/logo.png

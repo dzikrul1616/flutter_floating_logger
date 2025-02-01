@@ -19,14 +19,18 @@ class LoggerLogsData {
   /// Supports `Response` and `DioException`. Returns "Request" for `RequestOptions`.
   static String? getStatusCode<T>(T data) {
     if (data is Response<dynamic>) return data.statusCode.toString();
-    if (data is DioException) return data.response?.statusCode.toString();
+    if (data is DioException) {
+      return data.response?.statusCode == null
+          ? "Could not get status"
+          : data.response?.statusCode.toString();
+    }
     return 'Request'; // Default for RequestOptions
   }
 
   // Helper method to retrieve the URL
   /// Retrieves the request URL from the given data.
   /// Supports `RequestOptions`, `Response`, and `DioException`.
-  static String _getUrl<T>(T data) {
+  static String getUrl<T>(T data) {
     if (data is RequestOptions) return data.uri.toString();
     if (data is Response<dynamic>) return data.realUri.toString();
     if (data is DioException) return data.requestOptions.path;
@@ -66,10 +70,10 @@ class LoggerLogsData {
   // Message method to retrieve headers
   /// Extracts message response from the given data.
   /// Supports `RequestOptions`, `Response`, and `DioException`.
-  static String _getMessage<T>(T data) {
+  static String getMessage<T>(T data) {
     if (data is RequestOptions) return "-";
     if (data is Response<dynamic>) return data.statusMessage.toString();
-    if (data is DioException) return data.message ?? "No Error Message";
+    if (data is DioException) return data.message ?? "-";
     return data.toString(); // Fallback for unsupported data types
   }
 
@@ -89,16 +93,16 @@ class LoggerLogsData {
     // Extract individual log components from the data
     final method = getMethod(data);
     final statusCode = getStatusCode(data);
-    final url = _getUrl(data);
+    final url = getUrl(data);
     final dataText = _getData(data);
     final headers = _getHeaders(data);
     final param = _getParam(data);
-    final message = _getMessage(data);
+    final message = getMessage(data);
 
     // Construct the log message
     final logMessage = "${color}Method  :${AnsiColor.reset} $method\n"
         "${color}Url     :${AnsiColor.reset} $url\n"
-        "${color}Status  :${AnsiColor.reset} $statusCode\n"
+        "${color}Status  :${AnsiColor.reset} $statusCode \n"
         "${color}Message :${AnsiColor.reset} ${message.isEmpty ? '-' : message}\n"
         "${color}Param   :\n${AnsiColor.reset}${FormatLogger.parseJson(param)}\n"
         "${color}Data    :\n${AnsiColor.reset}${FormatLogger.parseJson(dataText)}\n"

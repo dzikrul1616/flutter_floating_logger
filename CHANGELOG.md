@@ -1,3 +1,6 @@
+## [0.0.4] - Improve Performance 
+* update coverage code 98%
+
 ## [0.0.3] - v.0.0.3 Documentation Image and gift Fixed
 * [fix] Assets image read.me 
 

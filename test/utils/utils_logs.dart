@@ -59,6 +59,18 @@ void utilsLogs() {
       expect(method, 'PUT');
     });
 
+    test('should correctly extract method unsuported', () {
+      final response = "GET";
+
+      final method = LoggerLogsData.getMethod<String>(response);
+      final url = LoggerLogsData.getUrl<String>(response);
+      final message = LoggerLogsData.getMessage<String>(response);
+
+      expect(method, 'GET');
+      expect(url, 'GET');
+      expect(message, 'GET');
+    });
+
     test('should correctly extract status code from Response', () {
       final response = Response<dynamic>(
         requestOptions: RequestOptions(
