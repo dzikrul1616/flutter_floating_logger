@@ -1,3 +1,6 @@
+## [0.0.6] - GraphQl support
+* [fix] Update cURL copy support GraphQL request
+
 ## [0.0.5] - Documentation
 * [update] Example documentation main
 * [fix] Assets image read.me  

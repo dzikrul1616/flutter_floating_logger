@@ -1,4 +1,4 @@
-import 'package:floating_logger/floating_logger.dart'; 
+import 'package:floating_logger/floating_logger.dart';
 import 'pages/home_page.dart';
 import 'utils/route.dart';
 
@@ -46,9 +46,9 @@ void main() {
   //     /// Another interception
   //   ],
   // );
-  // runApp(
-  //   const MyApp(),
-  // );
+  runApp(
+    const MyApp(),
+  );
 }
 
 class MyApp extends StatelessWidget {

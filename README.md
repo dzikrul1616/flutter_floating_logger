@@ -1,9 +1,13 @@
 <div align="center">
-  <img src="https://github.com/dzikrul1616/flutter_floating_logger/blob/main/images/logger%20logo.png?raw=true" alt="Logo Floating Logger" />
+  <img src="images/logger%20logo.png" alt="Live Demo" />
   <br />
 
   <a href="https://app.codecov.io/gh/dzikrul1616/flutter_floating_logger">
     <img src="https://codecov.io/gh/dzikrul1616/flutter_floating_logger/branch/main/graph/badge.svg" alt="Codecov" />
+  </a>
+
+  <a href="https://pub.dev/packages/floating_logger/score">
+    <img src="https://img.shields.io/pub/points/floating_logger" alt="Pub Points" />
   </a>
 
   <br />
@@ -13,7 +17,7 @@
   <a href="https://github.com/dzikrul1616/flutter_floating_logger/actions/workflows/testing.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/dzikrul1616/flutter_floating_logger/testing.yml?label=CI&style=social" alt="GitHub Actions" />
   </a>
-  <img src="https://img.shields.io/badge/pub-v0.0.5-orange.svg" alt="Version" />
+  <img src="https://img.shields.io/badge/pub-v0.0.6-orange.svg" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License" />
   <a href="https://github.com/dzikrul1616/flutter_floating_logger/issues">
     <img src="https://img.shields.io/badge/Issues-Open-brightgreen.svg" alt="Issues" />
