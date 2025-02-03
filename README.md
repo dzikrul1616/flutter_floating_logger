@@ -204,6 +204,42 @@ return FloatingLoggerControl(
 );
 ```
 
+## 🎨 Add Style to Floating Widget
+
+You can easily customize the appearance of your floating logger widget by using the `style` property. This allows you to adjust the background color, tooltip, icon, and even the size of the floating widget to match your app’s theme. 🎨✨
+
+```dart
+FloatingLoggerControl(
+      style: FloatingLoggerStyle(
+        backgroundColor: Colors.green,
+        tooltip: "Testing",
+        icon: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.offline_bolt,
+              color: Colors.white,
+              size: 20,
+            ),
+            Text(
+              "Test",
+              style: TextStyle(
+                fontSize: 8.0,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+      child : child,
+),
+```
+🖌️ What You Can Customize:
+- `backgroundColor`: Set a vibrant color to make your floating widget stand out.
+- `tooltip`: Add a custom tooltip text to provide helpful hints when hovering over the widget.
+- `icon`: Choose an icon (like offline_bolt, info, etc.) and customize its size, color, and appearance.
+- `size`: Adjust the size using `Size` class to adjust floating widget size.
+
 ## 🛠️ Adding a Single Custom Interceptor
 
 To add a single custom interceptor to `DioLogger`, you can use the `addInterceptor` method. Here’s an example of adding a custom `InterceptorsWrapper` that handles the `onResponse` and `onError` events.
