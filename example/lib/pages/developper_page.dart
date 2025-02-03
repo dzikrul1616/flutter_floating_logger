@@ -39,6 +39,27 @@ class _DevelopperModeState extends State<DevelopperMode> {
   @override
   Widget build(BuildContext context) {
     return FloatingLoggerControl(
+      style: FloatingLoggerStyle(
+        backgroundColor: Colors.green,
+        tooltip: "Testing",
+        icon: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.offline_bolt,
+              color: Colors.white,
+              size: 20,
+            ),
+            Text(
+              "Test",
+              style: TextStyle(
+                fontSize: 8.0,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
       /// get local preference hide and unhide in global state
       getPreference: newMethod,
       widgetItemBuilder: (index, data) {

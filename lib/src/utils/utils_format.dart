@@ -14,21 +14,36 @@ class FormatLogger {
   static String generateCurlCommand(RequestOptions options) {
     final buffer = StringBuffer();
 
-    // Writing the HTTP method and URL to the curl command
+    // Define the HTTP method
     buffer.write('curl -X ${options.method} ');
 
-    // Adding headers related to the request to the curl command
+    // Add headers, excluding 'content-length'
     options.headers.forEach((key, value) {
-      buffer.write('-H "$key: $value" ');
+      if (key.toLowerCase() != 'content-length') {
+        buffer.write('-H "$key: $value" ');
+      }
     });
 
-    // If there is data in the request, include it in the curl command
-    if (options.data != null) {
-      buffer.write('-d \'${options.data}\' ');
-    }
-
-    // Adding the request URL to the curl command
+    // Add URL
     buffer.write('"${options.uri.toString()}"');
+
+    // Handle request body for non-GET requests
+    if (options.method != 'GET' && options.data != null) {
+      String body;
+
+      // If data is a Map, encode it into JSON
+      if (options.data is Map) {
+        body = jsonEncode(options.data);
+      } else {
+        body = options.data.toString();
+      }
+
+      // Escape single quotes for safe JSON handling in curl
+      body = body.replaceAll("'", "\\'");
+
+      // Append body with correct format
+      buffer.write(' -d \'$body\'');
+    }
 
     return buffer.toString();
   }

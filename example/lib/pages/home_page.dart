@@ -37,7 +37,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("Floating Testing"),
+        title: const Text("Floating Logger Package Test"),
       ),
       body: Center(
         child: Column(
@@ -90,32 +90,39 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> fetchSuccess() async {
     try {
-      final response = await DioLogger.instance.get(
-        'https://api.genderize.io',
+      final response = await DioLogger.instance.post(
+        'https://countries.trevorblades.com/',
         options: Options(headers: {
-          "content-type": "application/json",
+          "Content-Type": "application/json",
         }),
-        queryParameters: {
-          "name": "james",
+        data: {
+          "query": """
+          query GetCountry(\$code: ID!) {
+            country(code: \$code) {
+              name
+              capital
+              currency
+            }
+          }
+        """,
+          "variables": {"code": "ID"}
         },
       );
 
       if (response.statusCode == 200) {
-        // your's management data
         // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             backgroundColor: Colors.green,
-            content: Text(
-              'Success Fectch',
-            ),
+            content: Text('Success Fetch Country Data'),
           ),
         );
       }
-    } catch (e) {
+    } catch (e) { 
+
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to fetch facts')),
+        const SnackBar(content: Text('Failed to fetch country data')),
       );
     }
   }

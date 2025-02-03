@@ -103,4 +103,95 @@ void widgetFloatingLoggerControlTest() {
       expect(find.byType(FloatingLoggerControl), findsOneWidget);
     });
   });
+  testWidgets('Floating action button renders correctly with default values',
+      (WidgetTester tester) async {
+    final widget = MaterialApp(
+      home: Scaffold(
+        body: SizedBox(
+          width: 50,
+          height: 50,
+          child: FloatingActionButton(
+            tooltip: "Debug API",
+            backgroundColor: const Color.fromARGB(255, 77, 159, 226),
+            onPressed: () {},
+            child: const Icon(
+              Icons.code_rounded,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(widget);
+
+    expect(find.byType(FloatingActionButton), findsOneWidget);
+    expect(find.byTooltip("Debug API"), findsOneWidget);
+    expect(find.byIcon(Icons.code_rounded), findsOneWidget);
+  });
+
+  testWidgets('Floating action button renders with custom style',
+      (WidgetTester tester) async {
+    final customStyle = FloatingLoggerStyle(
+      icon: const Icon(Icons.bug_report, color: Colors.red),
+      tooltip: "Custom Debug",
+      backgroundColor: Colors.green,
+      size: const Size(60, 60),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: FloatingLoggerControl(
+            style: customStyle,
+            child: const SizedBox(),
+          ),
+        ),
+      ),
+    );
+
+    final fabFinder = find.byType(FloatingActionButton);
+
+    expect(fabFinder, findsOneWidget);
+
+    final tooltip = tester.widget<FloatingActionButton>(fabFinder).tooltip;
+    expect(tooltip, "Custom Debug");
+
+    final backgroundColor =
+        tester.widget<FloatingActionButton>(fabFinder).backgroundColor;
+    expect(backgroundColor, Colors.green);
+
+    final icon = tester.widget<FloatingActionButton>(fabFinder).child as Icon;
+    expect(icon.icon, Icons.bug_report);
+    expect(icon.color, Colors.red);
+  });
+
+  testWidgets('FloatingActionButton with null style',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: FloatingLoggerControl(
+            style: FloatingLoggerStyle(),
+            child: const SizedBox(),
+          ),
+        ),
+      ),
+    );
+
+    final fabFinder = find.byType(FloatingActionButton);
+
+    expect(fabFinder, findsOneWidget);
+
+    final tooltip = tester.widget<FloatingActionButton>(fabFinder).tooltip;
+    expect(tooltip, "Debug API");
+
+    final backgroundColor =
+        tester.widget<FloatingActionButton>(fabFinder).backgroundColor;
+    expect(backgroundColor, const Color.fromARGB(255, 77, 159, 226));
+
+    final icon = tester.widget<FloatingActionButton>(fabFinder).child as Icon;
+    expect(icon.icon, Icons.code_rounded);
+    expect(icon.color, Colors.white);
+  });
 }

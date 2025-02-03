@@ -6,6 +6,10 @@
     <img src="https://codecov.io/gh/dzikrul1616/flutter_floating_logger/branch/main/graph/badge.svg" alt="Codecov" />
   </a>
 
+  <a href="https://pub.dev/packages/floating_logger/score">
+    <img src="https://img.shields.io/pub/points/floating_logger" alt="Pub Points" />
+  </a>
+
   <br />
   <a href="https://github.com/dzikrul1616/flutter_floating_logger">
     <img src="https://img.shields.io/github/stars/dzikrul1616/flutter_floating_logger?style=social" alt="Stars" />
@@ -13,7 +17,7 @@
   <a href="https://github.com/dzikrul1616/flutter_floating_logger/actions/workflows/testing.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/dzikrul1616/flutter_floating_logger/testing.yml?label=CI&style=social" alt="GitHub Actions" />
   </a>
-  <img src="https://img.shields.io/badge/pub-v0.0.5-orange.svg" alt="Version" />
+  <img src="https://img.shields.io/badge/pub-v0.0.6-orange.svg" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License" />
   <a href="https://github.com/dzikrul1616/flutter_floating_logger/issues">
     <img src="https://img.shields.io/badge/Issues-Open-brightgreen.svg" alt="Issues" />
@@ -56,7 +60,7 @@ import 'package:floating_logger/floating_logger.dart';
 
 ## Demo 🎥
 
-![logo](images/preview.gif)
+![logo](https://github.com/dzikrul1616/flutter_floating_logger/blob/main/images/preview.gif?raw=true)
 
 <div align="center">
 
@@ -71,13 +75,13 @@ Check out the live demo of **Floating Logger**:
 
 Here is the preview of the debug console log for the HTTP request:
 
-![logo](images/%5BGET%5Drequest_debug_api.png)  
+![logo](https://github.com/dzikrul1616/flutter_floating_logger/blob/main/images/%5BGET%5Drequest_debug_api.png?raw=true)  
 *Above: Example of the HTTP request.*
 
-![logo](images/%5BGET%5Dresponse_debug_api.png)  
+![logo](https://github.com/dzikrul1616/flutter_floating_logger/blob/main/images/%5BGET%5Dresponse_debug_api.png?raw=true)  
 *Middle: HTTP response log.*
 
-![logo](images/%5BGET%5Derror_debug_api.png)  
+![logo](https://github.com/dzikrul1616/flutter_floating_logger/blob/main/images/%5BGET%5Derror_debug_api.png?raw=true)  
 *Below: HTTP error log.*
 
 
@@ -199,6 +203,42 @@ return FloatingLoggerControl(
   child: child,
 );
 ```
+
+## 🎨 Add Style to Floating Widget
+
+You can easily customize the appearance of your floating logger widget by using the `style` property. This allows you to adjust the background color, tooltip, icon, and even the size of the floating widget to match your app’s theme. 🎨✨
+
+```dart
+FloatingLoggerControl(
+      style: FloatingLoggerStyle(
+        backgroundColor: Colors.green,
+        tooltip: "Testing",
+        icon: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.offline_bolt,
+              color: Colors.white,
+              size: 20,
+            ),
+            Text(
+              "Test",
+              style: TextStyle(
+                fontSize: 8.0,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+      child : child,
+),
+```
+🖌️ What You Can Customize:
+- `backgroundColor`: Set a vibrant color to make your floating widget stand out.
+- `tooltip`: Add a custom tooltip text to provide helpful hints when hovering over the widget.
+- `icon`: Choose an icon (like offline_bolt, info, etc.) and customize its size, color, and appearance.
+- `size`: Adjust the size using `Size` class to adjust floating widget size.
 
 ## 🛠️ Adding a Single Custom Interceptor
 

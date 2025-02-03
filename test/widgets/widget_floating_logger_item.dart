@@ -28,15 +28,76 @@ void widgetFloatingLoggerItemTest() {
         ),
       );
 
-      // Periksa apakah path ditampilkan
       expect(find.text('/api/test'), findsOneWidget);
 
-      // Periksa apakah response status ditampilkan
       expect(find.text('[Response]'), findsOneWidget);
       expect(find.text('[200]'), findsOneWidget);
 
-      // Periksa apakah indikator status Success ada
       expect(find.text('Success'), findsOneWidget);
+    });
+
+    testWidgets('Should display log details Error 500',
+        (WidgetTester tester) async {
+      final logData = LogRepositoryModel(
+        type: 'Error',
+        path: '/api/test',
+        response: '500',
+        queryparameter: 'id=123',
+        message: 'Error',
+        data: '{}',
+        responseData: '{"status":"Error"}',
+        curl: 'curl -X GET /api/test',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerItem(
+              data: logData,
+              index: 0,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('/api/test'), findsOneWidget);
+
+      expect(find.text('[Error]'), findsOneWidget);
+      expect(find.text('[500]'), findsOneWidget);
+
+      expect(find.text('Error'), findsOneWidget);
+    });
+
+    testWidgets('Should display log details Response 500',
+        (WidgetTester tester) async {
+      final logData = LogRepositoryModel(
+        type: 'Invalid',
+        path: '/api/test',
+        response: '500',
+        queryparameter: 'id=123',
+        message: 'Error',
+        data: '{}',
+        responseData: '{"status":"Error"}',
+        curl: 'curl -X GET /api/test',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerItem(
+              data: logData,
+              index: 0,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('/api/test'), findsOneWidget);
+
+      expect(find.text('[Invalid]'), findsOneWidget);
+      expect(find.text('[500]'), findsOneWidget);
+
+      expect(find.text('Error'), findsOneWidget);
     });
 
     testWidgets('Should toggle expanded details when tapped',
@@ -63,14 +124,11 @@ void widgetFloatingLoggerItemTest() {
         ),
       );
 
-      // Periksa apakah data awal tidak ditampilkan (karena expanded)
       expect(find.text('Data'), findsNothing);
 
-      // Klik untuk mengecilkan
       await tester.tap(find.byType(GestureDetector));
       await tester.pumpAndSettle();
 
-      // Sekarang data harus terlihat
       expect(find.text('Data'), findsOneWidget);
     });
   });
