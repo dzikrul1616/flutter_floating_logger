@@ -60,6 +60,7 @@ class _DevelopperModeState extends State<DevelopperMode> {
           ],
         ),
       ),
+
       /// get local preference hide and unhide in global state
       getPreference: newMethod,
       widgetItemBuilder: (index, data) {

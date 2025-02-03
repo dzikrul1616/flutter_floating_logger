@@ -69,8 +69,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// Example 
-// FloatingLoggerControl( 
+/// Example
+// FloatingLoggerControl(
 //    child: page,
 // ),
 
@@ -84,4 +84,3 @@ class MyApp extends StatelessWidget {
 //           "name": "james",
 //         },
 //       );
- 

@@ -91,10 +91,10 @@ void widgetFloatingLoggerToastTest() {
 
       final loggerToast = LoggerToast.of(testContext!);
       loggerToast.$howSuccessToast(message);
- 
+
       await tester.pumpAndSettle();
       await tester.pump(const Duration(seconds: 3));
- 
+
       expect(find.byType(StyledToast), findsOneWidget);
     });
 

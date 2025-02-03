@@ -264,7 +264,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
             : FloatingLoggerRowText(
                 title: 'Data',
                 data: widget.data.type == "Request"
-                    ? (widget.data.data ?? "")
+                    ? ((widget.data.data ?? ""))
                     : (widget.data.responseData ?? ""),
               ),
         FloatingLoggerRowText(
