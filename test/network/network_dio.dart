@@ -30,6 +30,7 @@ void networkDio() {
       mockRequestHandler = MockRequestInterceptorHandler();
       mockResponseHandler = MockResponseInterceptorHandler();
       mockErrorHandler = MockErrorInterceptorHandler();
+
       when(mockDio.options).thenReturn(BaseOptions(
         connectTimeout: Duration(milliseconds: 50000),
         receiveTimeout: Duration(milliseconds: 30000),
@@ -41,6 +42,7 @@ void networkDio() {
       final mockLogsNotifier = ValueNotifier<List<LogRepositoryModel>>([]);
       when(mockLogRepository.logsNotifier).thenReturn(mockLogsNotifier);
 
+      dio = mockDio;
       when(mockDio.get('https://jsonplaceholder.typicode.com/posts/1'))
           .thenAnswer((_) async => Response(
                 statusCode: 200,
@@ -56,8 +58,6 @@ void networkDio() {
                   path: 'https://jsonplaceholder.typicode.com/posts/1',
                 ),
               ));
-
-      dio = mockDio;
     });
 
     test('DioLogger singleton', () {
@@ -181,7 +181,7 @@ void networkDio() {
 
     test('addListInterceptor should add multiple interceptors', () {
       dioLogger.addListInterceptor([mockInterceptor, mockInterceptor2]);
- 
+
       expect(dioLogger.interceptors.length, 6);
       expect(dioLogger.interceptors[4], mockInterceptor);
       expect(dioLogger.interceptors[5], mockInterceptor2);

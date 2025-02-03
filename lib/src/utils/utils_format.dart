@@ -24,15 +24,10 @@ class FormatLogger {
       }
     });
 
-    // Handle query parameters for GET requests
-    if (options.method == 'GET' && options.queryParameters.isNotEmpty) {
-      final queryParams = Uri(queryParameters: options.queryParameters).query;
-      buffer.write('"${options.uri.toString()}?$queryParams"');
-    } else {
-      buffer.write('"${options.uri.toString()}"');
-    }
+    // Add URL
+    buffer.write('"${options.uri.toString()}"');
 
-    // Handle request body for GraphQL or POST requests
+    // Handle request body for non-GET requests
     if (options.method != 'GET' && options.data != null) {
       String body;
 
@@ -40,17 +35,14 @@ class FormatLogger {
       if (options.data is Map) {
         body = jsonEncode(options.data);
       } else {
-        // If it's already a String, use it directly
         body = options.data.toString();
       }
 
-      // Escape quote characters in JSON to prevent terminal errors
-      body = body.replaceAll('"', '\\"');
-      body = body.replaceAll(
-          '\n', '\\n'); // Replace newline characters with escape sequences
+      // Escape single quotes for safe JSON handling in curl
+      body = body.replaceAll("'", "\\'");
 
-      // Ensure the body is only added if the data is valid
-      buffer.write(' -d "$body"');
+      // Append body with correct format
+      buffer.write(' -d \'$body\'');
     }
 
     return buffer.toString();

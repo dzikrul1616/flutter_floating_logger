@@ -11,6 +11,7 @@ class FloatingLoggerControl extends StatefulWidget {
     this.isShow,
     this.getPreference,
     this.widgetItemBuilder,
+    this.style,
   });
 
   /// The main child widget (usually the app content).
@@ -21,6 +22,9 @@ class FloatingLoggerControl extends StatefulWidget {
 
   /// Determines if the visibility preference should be retrieved.
   final Future<bool> Function()? getPreference;
+
+  /// Styling of widget float.
+  final FloatingLoggerStyle? style;
 
   /// Custom widget builder for log items.
   final Widget Function(
@@ -68,7 +72,7 @@ class _FloatingLoggerControlState extends State<FloatingLoggerControl> {
               left: position.dx.clamp(0, constraints.maxWidth - 56),
               top: position.dy.clamp(0, constraints.maxHeight - 56),
               child: Draggable(
-                feedback: _buildFloatingActionButton(),
+                feedback: _buildFloatingActionButton(widget.style),
                 childWhenDragging: const SizedBox.shrink(),
                 onDragEnd: (details) {
                   setState(() {
@@ -87,7 +91,7 @@ class _FloatingLoggerControlState extends State<FloatingLoggerControl> {
                     );
                   });
                 },
-                child: _buildFloatingActionButton(),
+                child: _buildFloatingActionButton(widget.style),
               ),
             ),
         ],
@@ -96,14 +100,24 @@ class _FloatingLoggerControlState extends State<FloatingLoggerControl> {
   }
 
   /// Builds the floating action button for opening the debug panel.
-  Widget _buildFloatingActionButton() {
-    return FloatingActionButton(
-      tooltip: "Debug API",
-      backgroundColor: const Color.fromARGB(255, 77, 159, 226),
-      onPressed: _showDebugPanel,
-      child: const Icon(
-        Icons.code_rounded,
-        color: Colors.white,
+  Widget _buildFloatingActionButton(
+    FloatingLoggerStyle? style,
+  ) {
+    return SizedBox(
+      width: style?.size == null ? 50 : style!.size?.width,
+      height: style?.size == null ? 50 : style!.size?.height,
+      child: FloatingActionButton(
+        tooltip: style?.tooltip == null ? "Debug API" : style!.tooltip,
+        backgroundColor: style?.backgroundColor == null
+            ? const Color.fromARGB(255, 77, 159, 226)
+            : style!.backgroundColor,
+        onPressed: _showDebugPanel,
+        child: style?.icon == null
+            ? const Icon(
+                Icons.code_rounded,
+                color: Colors.white,
+              )
+            : style!.icon,
       ),
     );
   }

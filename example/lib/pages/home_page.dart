@@ -110,9 +110,6 @@ class _MyHomePageState extends State<MyHomePage> {
       );
 
       if (response.statusCode == 200) {
-        final data = response.data;
-        print("Country Data: $data");
-
         // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -121,8 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         );
       }
-    } catch (e) {
-      print("Error: $e");
+    } catch (e) { 
 
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,4 +1,5 @@
-## [0.0.6] - GraphQl support
+## [0.0.6] - GraphQl support & Floating Style
+* [update] Add floating style 
 * [fix] Update cURL copy support GraphQL request
 
 ## [0.0.5] - Documentation
