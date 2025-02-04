@@ -118,8 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         );
       }
-    } catch (e) { 
-
+    } catch (e) {
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to fetch country data')),

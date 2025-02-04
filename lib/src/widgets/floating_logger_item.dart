@@ -1,5 +1,6 @@
 import 'widgets.dart';
 import '../utils/utils.dart';
+import 'package:flutter/services.dart';
 import 'package:floating_logger/src/network/network_model.dart';
 
 /// A widget representing a single log item inside the floating logger.
@@ -31,6 +32,8 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
 
   // ValueNotifier to track expansion state of log item
   ValueNotifier<bool> isExpand = ValueNotifier(true);
+
+  static const _empty = SizedBox.shrink();
 
   @override
   void initState() {
@@ -83,7 +86,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
         context: context,
       );
     } else {
-      FlutterClipboard.copy(widget.data.curl!).then((value) {
+      Clipboard.setData(ClipboardData(text: widget.data.curl!)).then((_) {
         LoggerToast.successToast(
           "Successfully copied cURL data",
           // ignore: use_build_context_synchronously
@@ -116,12 +119,19 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
     return BoxDecoration(
       boxShadow: const <BoxShadow>[
         BoxShadow(
-            color: Color(0xffeaeaea), blurRadius: 4, offset: Offset(0, 4)),
-        BoxShadow(
-            color: Color(0xffeaeaea), blurRadius: 4, offset: Offset(-4, 0)),
+          color: Color.fromARGB(34, 0, 0, 0),
+          blurRadius: 4,
+          offset: Offset(0, 4),
+        ),
       ],
+      border: Border.all(
+        width: 2.0,
+        color: _getStatusColor(
+          isBorder: true,
+        ),
+      ),
       borderRadius: BorderRadius.circular(12),
-      color: Colors.grey[300],
+      color: Colors.white,
     );
   }
 
@@ -145,8 +155,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
-            child:
-                isExpanded ? const SizedBox.shrink() : _buildExpandedDetails(),
+            child: isExpanded ? _empty : _buildExpandedDetails(),
           ),
         ],
       ),
@@ -157,6 +166,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
   Widget _buildLogHeader(bool isExpanded) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(
           child: Column(
@@ -164,16 +174,23 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
             children: [
               _buildLogType(),
               const SizedBox(height: 5.0),
-              Text(
-                widget.data.path!,
-                style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.data.path ?? "",
+                    style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                  ),
+                  Icon(
+                    isExpanded
+                        ? Icons.arrow_drop_down_sharp
+                        : Icons.arrow_drop_up_sharp,
+                    color: Colors.grey[700],
+                  ),
+                ],
               ),
             ],
           ),
-        ),
-        Icon(
-          isExpanded ? Icons.arrow_drop_down_sharp : Icons.arrow_drop_up_sharp,
-          color: Colors.grey[700],
         ),
       ],
     );
@@ -182,21 +199,16 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
   /// Builds the log type with response status indicator.
   Widget _buildLogType() {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text('[${widget.data.type}]',
-            style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
-        Text(
-          widget.data.response == null || widget.data.response!.isEmpty
-              ? ''
-              : '[${widget.data.response}]',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            widget.data.method == null ? _empty : _buildMethod(),
+            widget.data.type == null ? _empty : _buildRequest(),
+          ],
         ),
-        widget.data.type == "Request"
-            ? const SizedBox.shrink()
-            : Padding(
-                padding: const EdgeInsets.only(left: 10),
-                child: _buildStatusIndicator(),
-              ),
+        widget.data.type == "REQUEST" ? _empty : _buildStatusIndicator(),
       ],
     );
   }
@@ -206,76 +218,225 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
     Color statusColor = _getStatusColor();
     String statusText = _getStatusText();
 
+    return _labelStatus(
+      statusColor,
+      '${widget.data.response} $statusText',
+    );
+  }
+
+  /// Builds the Method indicator based on the log response.
+  Widget _buildMethod() {
+    Color statusColor = _getMethodColor();
+
+    return _labelStatus(
+      statusColor,
+      widget.data.method!,
+    );
+  }
+
+  /// Builds the Method indicator based on the log response.
+  Widget _buildRequest() {
+    Color statusColor = _getRequestColor();
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: _labelStatus(
+        statusColor,
+        widget.data.type!,
+      ),
+    );
+  }
+
+  Widget _labelStatus(
+    Color statusColor,
+    String statusText,
+  ) {
     return Container(
       decoration: BoxDecoration(
-          color: statusColor, borderRadius: BorderRadius.circular(12)),
+        color: statusColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8,
+          vertical: 4,
+        ),
         child: Text(
           statusText,
           style: GoogleFonts.inter(
-              fontWeight: FontWeight.bold, color: Colors.white),
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+            fontSize: 12,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Builds expanded details when the log is expanded.
+  Widget _buildExpandedDetails() {
+    var param = widget.data.queryparameter;
+    var message = widget.data.message;
+    var header = widget.data.header;
+    var curl = widget.data.curl;
+    return Column(
+      children: [
+        Divider(
+          thickness: 2,
+          color: _getStatusColor(
+            isBorder: true,
+          ),
+        ),
+        message == null || message.isEmpty
+            ? _empty
+            : _codeFieldCopy(
+                'Message',
+                message,
+              ),
+        param == null
+            ? _empty
+            : _codeFieldCopy(
+                'Param',
+                param,
+              ),
+        widget.data.data == "null"
+            ? _empty
+            : _codeFieldCopy(
+                'Data',
+                widget.data.type == "REQUEST"
+                    ? ((widget.data.data ?? ""))
+                    : (widget.data.responseData ?? "")),
+        header == null
+            ? _empty
+            : _codeFieldCopy(
+                'Header',
+                header,
+              ),
+        curl == null ? _empty : _codeFieldCopy('cURL', curl),
+      ],
+    );
+  }
+
+  Widget _codeFieldCopy(
+    String title,
+    String data,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Colors.grey[200],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: data)).then((_) {
+                        LoggerToast.successToast(
+                          "Successfully copied $title",
+                          // ignore: use_build_context_synchronously
+                          context: context,
+                        );
+                      });
+                    },
+                    child: Icon(
+                      Icons.copy,
+                      size: 15,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                data,
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   /// Determines the color of the status indicator.
-  Color _getStatusColor() {
-    if (widget.data.type == 'Response' ||
-        LoggerNetworkSettings.isSucces(widget.data)) {
-      return Colors.green;
-    } else if (widget.data.type == 'Error' ||
-        LoggerNetworkSettings.isError(widget.data)) {
-      return Colors.red;
-    } else {
-      return Colors.yellow;
+  Color _getStatusColor({
+    bool isBorder = false,
+  }) {
+    switch (widget.data.type) {
+      case 'RESPONSE':
+        return Colors.green;
+      case 'ERROR':
+        return Colors.red;
+      case 'REQUEST':
+        return isBorder ? Color(0xffECECEC) : Color(0xffFFB700);
+      default:
+        return LoggerNetworkSettings.isSucces(widget.data)
+            ? Colors.green
+            : LoggerNetworkSettings.isError(widget.data)
+                ? Colors.red
+                : Color(0xffFFB700);
+    }
+  }
+
+  /// Determines the color of the Request indicator.
+  Color _getRequestColor() {
+    switch (widget.data.type) {
+      case 'RESPONSE':
+        return Colors.blue[400]!;
+      case 'ERROR':
+        return Colors.red[400]!;
+      default:
+        return Colors.grey[400]!;
+    }
+  }
+
+  /// Determines the color of the Request indicator.
+
+  Color _getMethodColor() {
+    switch (widget.data.method) {
+      case 'GET':
+        return Colors.green;
+      case 'POST':
+        return Color(0xffFFB700);
+      case 'PUT':
+        return Colors.blue;
+      case 'PATCH':
+        return Colors.purpleAccent;
+      case 'OPTIONS':
+        return Colors.purple;
+      case 'HEAD':
+        return Colors.greenAccent;
+      default:
+        return Colors.red;
     }
   }
 
   /// Determines the text of the status indicator.
   String _getStatusText() {
-    if (widget.data.type == 'Response' ||
+    if (widget.data.type == 'RESPONSE' ||
         LoggerNetworkSettings.isSucces(widget.data)) {
-      return "Success";
-    } else if (widget.data.type == 'Error' ||
+      return "SUCCESS";
+    } else if (widget.data.type == 'ERROR' ||
         LoggerNetworkSettings.isError(widget.data)) {
-      return "Error";
+      return "ERROR";
     } else {
-      return "Unknown";
+      return "UNKNOWN";
     }
-  }
-
-  /// Builds expanded details when the log is expanded.
-  Widget _buildExpandedDetails() {
-    return Column(
-      children: [
-        const Divider(thickness: 1, color: Colors.white),
-        widget.data.type == "Request"
-            ? const SizedBox.shrink()
-            : FloatingLoggerRowText(
-                title: 'Message', data: widget.data.message ?? ""),
-        FloatingLoggerRowText(
-          title: 'Param',
-          data: widget.data.queryparameter ?? "",
-        ),
-        widget.data.data == "null"
-            ? const SizedBox.shrink()
-            : FloatingLoggerRowText(
-                title: 'Data',
-                data: widget.data.type == "Request"
-                    ? (widget.data.data ?? "")
-                    : (widget.data.responseData ?? ""),
-              ),
-        FloatingLoggerRowText(
-          title: 'Header',
-          data: widget.data.header ?? "",
-        ),
-        FloatingLoggerRowText(
-          title: 'cURL',
-          data: widget.data.curl ?? "",
-        ),
-      ],
-    );
   }
 }

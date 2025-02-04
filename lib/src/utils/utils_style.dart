@@ -5,11 +5,11 @@ class FloatingLoggerStyle {
     this.icon,
     this.tooltip,
     this.backgroundColor,
-    this.size, 
+    this.size,
   });
 
   final Widget? icon;
   final String? tooltip;
   final Color? backgroundColor;
-  final Size? size; 
+  final Size? size;
 }

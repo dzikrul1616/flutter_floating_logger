@@ -24,7 +24,7 @@ class LoggerLogsData {
           ? "Could not get status"
           : data.response?.statusCode.toString();
     }
-    return 'Request'; // Default for RequestOptions
+    return 'REQUEST'; // Default for RequestOptions
   }
 
   // Helper method to retrieve the URL
@@ -52,9 +52,24 @@ class LoggerLogsData {
   /// Supports `RequestOptions`, `Response`, and `DioException`.
   static dynamic _getHeaders<T>(T data) {
     if (data is RequestOptions) return data.headers;
-    if (data is Response<dynamic>) return data.headers;
-    if (data is DioException) return data.requestOptions.headers;
+    if (data is Response<dynamic>) {
+      return _filterHeaders(data.requestOptions.headers);
+    }
+    if (data is DioException) {
+      return _filterHeaders(data.requestOptions.headers);
+    }
     return data; // Fallback for unsupported data types
+  }
+
+  static Map<String, dynamic> _filterHeaders(Map<String, dynamic> headers) {
+    final hiddenKeys = {
+      'authorization',
+      'cookie',
+      'set-cookie',
+      'x-powered-by'
+    };
+    return headers
+      ..removeWhere((key, value) => hiddenKeys.contains(key.toLowerCase()));
   }
 
   // Helper method to retrieve queryparameter
@@ -71,7 +86,7 @@ class LoggerLogsData {
   /// Extracts message response from the given data.
   /// Supports `RequestOptions`, `Response`, and `DioException`.
   static String getMessage<T>(T data) {
-    if (data is RequestOptions) return "-";
+    if (data is RequestOptions) return "";
     if (data is Response<dynamic>) return data.statusMessage.toString();
     if (data is DioException) return data.message ?? "-";
     return data.toString(); // Fallback for unsupported data types
@@ -119,10 +134,11 @@ class LoggerLogsData {
     logRepository.addLog(
       LogRepositoryModel(
         type: name == "RES"
-            ? "Response"
+            ? "RESPONSE"
             : name == "REQ"
-                ? "Request"
-                : "Error",
+                ? "REQUEST"
+                : "ERROR",
+        method: method,
         path: url,
         responseData: FormatLogger.parseJson(dataText),
         data: FormatLogger.parseJson(dataText),

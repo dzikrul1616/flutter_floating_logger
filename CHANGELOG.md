@@ -1,3 +1,7 @@
+## [0.0.7] - New ui and layout
+* [update] Update ui list item
+* [fix] Method request added
+
 ## [0.0.6] - GraphQl support & Floating Style
 * [update] Add floating style 
 * [fix] Update cURL copy support GraphQL request

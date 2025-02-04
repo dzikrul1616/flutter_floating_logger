@@ -40,6 +40,8 @@ class LogRepositoryModel extends Equatable {
   /// The type of request or log, such as `GET`, `POST`, etc.
   final String? type;
 
+  final String? method;
+
   /// The response returned from the server.
   final String? response;
 
@@ -66,6 +68,7 @@ class LogRepositoryModel extends Equatable {
 
   const LogRepositoryModel({
     this.type,
+    this.method,
     this.response,
     this.queryparameter,
     this.header,
@@ -80,6 +83,7 @@ class LogRepositoryModel extends Equatable {
   factory LogRepositoryModel.fromJson(Map<String, dynamic> json) {
     return LogRepositoryModel(
       type: json["type"] ?? "",
+      method: json["method"] ?? "",
       response: json["response"] ?? "",
       queryparameter: json["queryparameter"] ?? "",
       header: json["header"] ?? "",
@@ -93,6 +97,7 @@ class LogRepositoryModel extends Equatable {
   /// Converts the log instance into a JSON object.
   Map<String, dynamic> toJson() => {
         "type": type,
+        "method": method,
         "response": response,
         "queryparameter": queryparameter,
         "header": header,
@@ -106,13 +111,14 @@ class LogRepositoryModel extends Equatable {
   /// Overrides the `toString` method to format log information as a string.
   @override
   String toString() {
-    return "$type, $response, $header, $queryparameter, $data, $responseData, $path, $message, $curl";
+    return "$type, $method, $response, $header, $queryparameter, $data, $responseData, $path, $message, $curl";
   }
 
   /// Properties used by `Equatable` for object comparison.
   @override
   List<Object?> get props => [
         type,
+        method,
         response,
         header,
         queryparameter,

@@ -106,7 +106,8 @@ void networkModel() {
     test('LogRepositoryModel should format toString correctly', () {
       // Create LogRepositoryModel instance
       final log = LogRepositoryModel(
-        type: "GET",
+        type: "REQUEST",
+        method: "GET",
         response: "200 OK",
         queryparameter: "id=1",
         header: "Content-Type: application/json",
@@ -118,7 +119,7 @@ void networkModel() {
 
       // Verify the toString method output
       expect(log.toString(),
-          "GET, 200 OK, Content-Type: application/json, id=1, {\"name\": \"John\"}, {\"id\": 1, \"name\": \"John\"}, null, Request successful, curl -X GET https://example.com");
+          "REQUEST, GET, 200 OK, Content-Type: application/json, id=1, {\"name\": \"John\"}, {\"id\": 1, \"name\": \"John\"}, null, Request successful, curl -X GET https://example.com");
     });
   });
 }
