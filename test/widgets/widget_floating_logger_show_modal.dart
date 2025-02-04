@@ -30,7 +30,7 @@ void widgetFloatingLoggerShowModalTest() {
       await tester.pump();
 
       expect(find.byType(FloatingLoggerModalBottomWidget), findsOneWidget);
-      expect(find.text('Total Data : 2'), findsOneWidget);
+      expect(find.text('2 Request'), findsOneWidget);
       expect(find.text('Clear'), findsOneWidget);
       expect(find.text('Test log 1'), findsOneWidget);
       expect(find.text('Test log 2'), findsOneWidget);
@@ -64,7 +64,7 @@ void widgetFloatingLoggerShowModalTest() {
       await tester.pump();
 
       expect(DioLogger.instance.logs.logsNotifier.value, isEmpty);
-      expect(find.text('Total Data : 0'), findsOneWidget);
+      expect(find.text('0 Request'), findsOneWidget);
     });
 
     testWidgets('should display the handle at the top of the modal',

@@ -68,38 +68,57 @@ class FloatingLoggerModalBottomWidget extends StatelessWidget {
   // This row contains a "Clear" button to clear the logs and a text displaying the total number of logs
   Widget _buildHeader(List<LogRepositoryModel> logs) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        _buildLenghtData(logs),
         _buildClearButton(),
-        Text(
-          'Total Data : ${logs.length}',
-          style: GoogleFonts.inter(),
-        ),
       ],
+    );
+  }
+
+  Widget _buildLenghtData(List<LogRepositoryModel> logs) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.blue,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Text(
+          '${logs.length} Request',
+          style: GoogleFonts.inter(
+            fontSize: 10.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 
   // Function to build the "Clear" button
   // When tapped, this button clears the log data
   Widget _buildClearButton() {
-    return GestureDetector(
-      onTap: () => DioLogger.instance.logs.clearLogs(),
-      child: Container(
-        width: 80,
-        decoration: BoxDecoration(
-            border: Border.all(
-              width: 1.0,
-              color: Colors.red,
-            ),
-            borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Center(
-            child: Text(
-              "Clear",
-              style: GoogleFonts.inter(
-                fontSize: 10.0,
+    return Padding(
+      padding: const EdgeInsets.only(left: 6),
+      child: GestureDetector(
+        onTap: () => DioLogger.instance.logs.clearLogs(),
+        child: Container(
+          width: 80,
+          decoration: BoxDecoration(
+              border: Border.all(
+                width: 1.0,
                 color: Colors.red,
+              ),
+              borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Center(
+              child: Text(
+                "Clear",
+                style: GoogleFonts.inter(
+                  fontSize: 10.0,
+                  color: Colors.red,
+                ),
               ),
             ),
           ),

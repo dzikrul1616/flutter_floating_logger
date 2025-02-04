@@ -430,6 +430,15 @@ class MockDioLogger extends _i1.Mock implements _i5.DioLogger {
       ) as _i5.Interceptors);
 
   @override
+  void addDefaultInterceptors() => super.noSuchMethod(
+        Invocation.method(
+          #addDefaultInterceptors,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   void addInterceptor(_i5.Interceptor? interceptor) => super.noSuchMethod(
         Invocation.method(
           #addInterceptor,
@@ -2116,11 +2125,6 @@ class MockRequestOptions extends _i1.Mock implements _i2.RequestOptions {
         ),
       ) as _i2.RequestOptions);
 }
-
-/// A class which mocks [FlutterClipboard].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockFlutterClipboard extends _i1.Mock implements _i5.FlutterClipboard {}
 
 /// A class which mocks [ErrorInterceptorHandler].
 ///

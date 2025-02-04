@@ -46,7 +46,7 @@ class DioLogger with DioMixin implements Dio {
     }
 
     // Add default interceptors
-    _addDefaultInterceptors();
+    addDefaultInterceptors();
 
     // Add Dio's built-in logging interceptor (disabled to avoid duplicate logs).
     interceptors.add(
@@ -76,7 +76,7 @@ class DioLogger with DioMixin implements Dio {
   LogRepository get logs => _logRepository;
 
   // Add a custom interceptor to log request, response, and error details.
-  void _addDefaultInterceptors() {
+  void addDefaultInterceptors() {
     interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) => LoggerNetworkSettings.onRequest(
