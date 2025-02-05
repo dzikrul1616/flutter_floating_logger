@@ -1404,7 +1404,6 @@ class MockDioLogger extends _i1.Mock implements _i5.DioLogger {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockLoggerToast extends _i1.Mock implements _i9.LoggerToast {
-  @override
   _i5.BuildContext get context => (super.noSuchMethod(
         Invocation.getter(#context),
         returnValue: _FakeBuildContext_10(
@@ -1417,7 +1416,6 @@ class MockLoggerToast extends _i1.Mock implements _i9.LoggerToast {
         ),
       ) as _i5.BuildContext);
 
-  @override
   void $howSuccessToast(String? message) => super.noSuchMethod(
         Invocation.method(
           #$howSuccessToast,
@@ -1426,7 +1424,6 @@ class MockLoggerToast extends _i1.Mock implements _i9.LoggerToast {
         returnValueForMissingStub: null,
       );
 
-  @override
   void $howErrorToast(String? message) => super.noSuchMethod(
         Invocation.method(
           #$howErrorToast,

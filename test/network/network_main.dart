@@ -1,11 +1,10 @@
 import 'package:floating_logger/src/network/network.dart';
-import 'package:floating_logger/src/widgets/widgets.dart';
 import '../test.dart';
 
 @GenerateNiceMocks([
   MockSpec<Response>(),
   MockSpec<DioLogger>(),
-  MockSpec<LoggerToast>(),
+  // MockSpec<LoggerToast>(),
   MockSpec<Interceptor>(),
   MockSpec<DioException>(),
   MockSpec<LogRepository>(),

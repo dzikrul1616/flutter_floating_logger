@@ -82,15 +82,15 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
   void copyCurlToClipboard(BuildContext context) {
     if (widget.data.curl!.isEmpty) {
       LoggerToast.errorToast(
+        context,
         "Failed to copy, no data available",
-        context: context,
       );
     } else {
       Clipboard.setData(ClipboardData(text: widget.data.curl!)).then((_) {
         LoggerToast.successToast(
-          "Successfully copied cURL data",
           // ignore: use_build_context_synchronously
-          context: context,
+          context,
+          "Successfully copied cURL data",
         );
       });
     }
@@ -164,33 +164,27 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
 
   /// Builds the log header with type, status, and path.
   Widget _buildLogHeader(bool isExpanded) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.end,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildLogType(),
-              const SizedBox(height: 5.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    widget.data.path ?? "",
-                    style: GoogleFonts.inter(fontWeight: FontWeight.bold),
-                  ),
-                  Icon(
-                    isExpanded
-                        ? Icons.arrow_drop_down_sharp
-                        : Icons.arrow_drop_up_sharp,
-                    color: Colors.grey[700],
-                  ),
-                ],
+        _buildLogType(),
+        const SizedBox(height: 5.0),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                widget.data.path ?? "",
+                style: GoogleFonts.inter(fontWeight: FontWeight.bold),
               ),
-            ],
-          ),
+            ),
+            Icon(
+              isExpanded
+                  ? Icons.arrow_drop_down_sharp
+                  : Icons.arrow_drop_up_sharp,
+              color: Colors.grey[700],
+            ),
+          ],
         ),
       ],
     );
@@ -201,12 +195,14 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            widget.data.method == null ? _empty : _buildMethod(),
-            widget.data.type == null ? _empty : _buildRequest(),
-          ],
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              widget.data.method == null ? _empty : _buildMethod(),
+              widget.data.type == null ? _empty : _buildRequest(),
+            ],
+          ),
         ),
         widget.data.type == "REQUEST" ? _empty : _buildStatusIndicator(),
       ],
@@ -347,9 +343,9 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: data)).then((_) {
                         LoggerToast.successToast(
-                          "Successfully copied $title",
                           // ignore: use_build_context_synchronously
-                          context: context,
+                          context,
+                          "Successfully copied $title",
                         );
                       });
                     },

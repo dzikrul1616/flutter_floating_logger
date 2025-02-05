@@ -4,128 +4,54 @@ import '../test.dart';
 
 void widgetFloatingLoggerToastTest() {
   group('FloatingLoggerToast Widget Test', () {
-    testWidgets('Displays success toast', (WidgetTester tester) async {
+    testWidgets('Success toast appears and disappears',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Builder(
-            builder: (context) {
-              return ElevatedButton(
-                onPressed: () => LoggerToast.successToast(
-                  'Success message',
-                  context: context,
-                ),
-                child: Text('Show Toast'),
-              );
-            },
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => LoggerToast.successToast(context, 'Success!'),
+                child: Text('Show Success Toast'),
+              ),
+            ),
           ),
         ),
       );
 
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pumpAndSettle();
-      await tester.pump(const Duration(seconds: 3));
-      expect(find.byType(ElevatedButton), findsOneWidget);
+      await tester.tap(find.text('Show Success Toast'));
+      await tester.pump();
+
+      expect(find.text('Success!'), findsOneWidget);
+
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+
+      expect(find.text('Success!'), findsNothing);
     });
 
-    testWidgets('Displays error toast', (WidgetTester tester) async {
+    testWidgets('Error toast appears and disappears',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Builder(
-            builder: (context) {
-              return ElevatedButton(
-                onPressed: () => LoggerToast.errorToast(
-                  'Error occurred',
-                  context: context,
-                ),
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => LoggerToast.errorToast(context, 'Error!'),
                 child: Text('Show Error Toast'),
-              );
-            },
+              ),
+            ),
           ),
         ),
       );
 
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pumpAndSettle();
-      await tester.pump(const Duration(seconds: 3));
-      expect(find.byType(ElevatedButton), findsOneWidget);
-    });
+      await tester.tap(find.text('Show Error Toast'));
+      await tester.pump();
 
-    testWidgets('LoggerToast.of should initialize with the provided context',
-        (WidgetTester tester) async {
-      BuildContext? testContext;
+      expect(find.text('Error!'), findsOneWidget);
 
-      await tester.pumpWidget(
-        Builder(
-          builder: (context) {
-            testContext = context;
-            return const SizedBox();
-          },
-        ),
-      );
+      await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      final loggerToast = LoggerToast.of(testContext!);
-
-      expect(loggerToast.context, equals(testContext));
-    });
-
-    testWidgets('\$howSuccessToast should display toast',
-        (WidgetTester tester) async {
-      BuildContext? testContext;
-      const message = 'Success message';
-
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (context, child) {
-            return StyledToast(
-              locale: Locale('en', 'EN'),
-              child: Builder(
-                builder: (context) {
-                  testContext = context;
-                  return const SizedBox();
-                },
-              ),
-            );
-          },
-        ),
-      );
-
-      final loggerToast = LoggerToast.of(testContext!);
-      loggerToast.$howSuccessToast(message);
-
-      await tester.pumpAndSettle();
-      await tester.pump(const Duration(seconds: 3));
-
-      expect(find.byType(StyledToast), findsOneWidget);
-    });
-
-    testWidgets('\$howErrorToast should display toast',
-        (WidgetTester tester) async {
-      BuildContext? testContext;
-      const message = 'Error message';
-
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (context, child) {
-            return StyledToast(
-              locale: Locale('en', 'EN'),
-              child: Builder(
-                builder: (context) {
-                  testContext = context;
-                  return const SizedBox();
-                },
-              ),
-            );
-          },
-        ),
-      );
-
-      final loggerToast = LoggerToast.of(testContext!);
-      loggerToast.$howErrorToast(message);
-
-      await tester.pumpAndSettle();
-      await tester.pump(const Duration(seconds: 3));
-
-      expect(find.byType(StyledToast), findsOneWidget);
+      expect(find.text('Error!'), findsNothing);
     });
   });
 }

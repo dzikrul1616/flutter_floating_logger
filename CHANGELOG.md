@@ -1,3 +1,8 @@
+## [0.0.8] - Platform and toast fixed
+* [update] New toastbar 
+* [fix] available on mac, windows, and linux fixed
+* update coverage code 97%
+
 ## [0.0.7] - New ui and layout
 * [update] Update ui list item
 * [fix] Method request added
