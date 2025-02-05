@@ -1,5 +1,6 @@
 import 'package:floating_logger/src/network/network.dart';
 import 'package:floating_logger/src/widgets/widgets.dart';
+import 'package:flutter/services.dart';
 import '../test.dart';
 
 void widgetFloatingLoggerItemTest() {
@@ -218,7 +219,47 @@ void widgetFloatingLoggerItemTest() {
 
     await tester.longPress(gestureDetectorFinder);
     await tester.pump();
+
+    await tester.runAsync(() async {
+      await Clipboard.setData(ClipboardData(text: mockData.curl!));
+    });
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Successfully copied cURL data'), findsOneWidget);
+
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+    expect(find.text('Successfully copied cURL data'), findsNothing);
   });
+
+  testWidgets('Test onLongPress gesture on FloatingLoggerItem empty curl',
+      (WidgetTester tester) async {
+    final mockData = LogRepositoryModel(
+      curl: '',
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: FloatingLoggerItem(
+            data: mockData,
+            index: 0,
+          ),
+        ),
+      ),
+    );
+
+    final gestureDetectorFinder = find.byType(GestureDetector);
+
+    expect(gestureDetectorFinder, findsOneWidget);
+
+    await tester.longPress(gestureDetectorFinder);
+    await tester.pump();
+    expect(find.text('Failed to copy, no data available'), findsOneWidget);
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+    expect(find.text('Failed to copy, no data available'), findsNothing);
+  });
+
   testWidgets('Shows success toast when copying cURL data', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -229,8 +270,8 @@ void widgetFloatingLoggerItemTest() {
                 child: ElevatedButton(
                   onPressed: () {
                     LoggerToast.successToast(
+                      context,
                       "Successfully copied cURL data",
-                      context: context,
                     );
                   },
                   child: const Text('Show Toast'),
@@ -242,9 +283,11 @@ void widgetFloatingLoggerItemTest() {
       ),
     );
     await tester.tap(find.text('Show Toast'));
-    await tester.pumpAndSettle();
-    await tester.pump(const Duration(seconds: 3));
+
     await tester.pump();
+    expect(find.text('Successfully copied cURL data'), findsOneWidget);
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+    expect(find.text('Successfully copied cURL data'), findsNothing);
 
     expect(find.byType(ElevatedButton), findsOneWidget);
   });
@@ -259,8 +302,8 @@ void widgetFloatingLoggerItemTest() {
                 child: ElevatedButton(
                   onPressed: () {
                     LoggerToast.errorToast(
+                      context,
                       "Failed to copy, no data available",
-                      context: context,
                     );
                   },
                   child: const Text('Show Error Toast'),
@@ -271,11 +314,12 @@ void widgetFloatingLoggerItemTest() {
         ),
       ),
     );
-
     await tester.tap(find.text('Show Error Toast'));
-    await tester.pumpAndSettle();
-    await tester.pump(const Duration(seconds: 3));
+
     await tester.pump();
+    expect(find.text('Failed to copy, no data available'), findsOneWidget);
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+    expect(find.text('Failed to copy, no data available'), findsNothing);
 
     expect(find.byType(ElevatedButton), findsOneWidget);
   });
