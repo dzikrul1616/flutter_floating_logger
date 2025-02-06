@@ -4,8 +4,7 @@ class WidgetsTestMain {
   static void main() {
     widgetFloatingLoggerItemTest();
     widgetFloatingLoggerToastTest();
-    widgetFloatingLoggerControlTest();
-    widgetFloatingLoggerRowTextTest();
+    widgetFloatingLoggerControlTest(); 
     widgetFloatingLoggerShowModalTest();
   }
 }

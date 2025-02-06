@@ -9,6 +9,7 @@ class PagesFloatingLogger extends StatelessWidget {
   const PagesFloatingLogger({
     super.key,
     this.widgetItemBuilder,
+    this.logsFiltered,
   });
 
   /// A function that allows custom rendering of each log item.
@@ -16,20 +17,14 @@ class PagesFloatingLogger extends StatelessWidget {
     int index,
     List<LogRepositoryModel> data,
   )? widgetItemBuilder;
+  final List<LogRepositoryModel>? logsFiltered;
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<List<LogRepositoryModel>>(
-      valueListenable:
-          DioLogger.instance.logs.logsNotifier, // Observing log changes
-      builder: (context, logs, child) {
-        return Expanded(
-          child: logs.isEmpty
-              ? _buildEmptyState(
-                  context) // Display empty state when no logs exist
-              : _buildLogList(logs),
-        );
-      },
+    return Expanded(
+      child: logsFiltered!.isEmpty
+          ? _buildEmptyState(context) // Display empty state when no logs exist
+          : _buildLogList(logsFiltered!),
     );
   }
 
@@ -72,11 +67,11 @@ class PagesFloatingLogger extends StatelessWidget {
   /// Builds a list of log items when logs are available.
   Widget _buildLogList(List<LogRepositoryModel> logs) {
     return ListView.builder(
-      itemCount: logs.length, // Number of logs to display
+      itemCount: logsFiltered!.length, // Number of logs to display
       shrinkWrap: true, // Allows flexible sizing
       physics: const ScrollPhysics(), // Standard scroll behavior
       itemBuilder: (context, index) {
-        return _buildLogItem(index, logs);
+        return _buildLogItem(index, logsFiltered!);
       },
     );
   }

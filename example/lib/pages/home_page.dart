@@ -19,12 +19,12 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     listData = [
       ListDataModel(
-        message: 'Test Fetch Success 1',
-        buttonText: 'Fetch Facts',
+        message: 'Test Fetch Success GraphQL',
+        buttonText: 'Succeess',
         onPressed: () => fetchSuccess(),
       ),
       ListDataModel(
-        message: 'Test Fetch Failure 2',
+        message: 'Test Fetch Failure',
         buttonText: 'Failure',
         onPressed: () => fetchFailure(),
       ),

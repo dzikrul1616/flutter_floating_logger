@@ -195,16 +195,17 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+        Flexible(
+          child: Wrap(
+            spacing: 4,
+            runSpacing: 4,
             children: [
-              widget.data.method == null ? _empty : _buildMethod(),
-              widget.data.type == null ? _empty : _buildRequest(),
+              if (widget.data.method != null) _buildMethod(),
+              if (widget.data.type != null) _buildRequest(),
             ],
           ),
         ),
-        widget.data.type == "REQUEST" ? _empty : _buildStatusIndicator(),
+        if (widget.data.type != "REQUEST") _buildStatusIndicator(),
       ],
     );
   }
@@ -257,12 +258,17 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
           horizontal: 8,
           vertical: 4,
         ),
-        child: Text(
-          statusText,
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-            fontSize: 12,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            statusText,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              fontSize: 12,
+            ),
           ),
         ),
       ),
