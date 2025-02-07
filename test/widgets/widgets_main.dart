@@ -5,7 +5,6 @@ class WidgetsTestMain {
     widgetFloatingLoggerItemTest();
     widgetFloatingLoggerToastTest();
     widgetFloatingLoggerControlTest();
-    widgetFloatingLoggerRowTextTest();
     widgetFloatingLoggerShowModalTest();
   }
 }

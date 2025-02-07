@@ -4,7 +4,7 @@ export 'utils/utils.dart'
 export 'widgets/widgets.dart'
     hide
         LoggerToast,
-        FloatingLoggerRowText,
         FloatingLoggerModalBottomWidget,
-        FloatingLoggerItem;
+        FloatingLoggerItem,
+        FloatingLoggerModalBottomWidgetState;
 export 'network/network.dart' hide LogRepository, LogRepositoryModel;

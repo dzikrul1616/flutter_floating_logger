@@ -107,6 +107,7 @@ class _FloatingLoggerControlState extends State<FloatingLoggerControl> {
       width: style?.size == null ? 50 : style!.size?.width,
       height: style?.size == null ? 50 : style!.size?.height,
       child: FloatingActionButton(
+        heroTag: "floating_logger",
         tooltip: style?.tooltip == null ? "Debug API" : style!.tooltip,
         backgroundColor: style?.backgroundColor == null
             ? const Color.fromARGB(255, 77, 159, 226)
