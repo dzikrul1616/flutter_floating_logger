@@ -47,6 +47,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
   @override
   void dispose() {
     _expandAnimationController.dispose();
+    isExpand.dispose();
     super.dispose();
   }
 
@@ -56,7 +57,6 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
     if (widget.child != null) {
       return widget.child!;
     }
-
     return ValueListenableBuilder(
         valueListenable: isExpand,
         builder: (context, value, child) {
@@ -64,6 +64,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
             onLongPress: () => copyCurlToClipboard(context),
             onTap: () {
               isExpand.value = !value;
+              if (_expandAnimationController.isAnimating) return;
               if (value) {
                 _expandAnimationController.reverse(); // Collapse
               } else {

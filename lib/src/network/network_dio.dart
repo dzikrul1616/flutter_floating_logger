@@ -1,4 +1,4 @@
-import 'package:dio/io.dart';
+ import 'package:dio/io.dart' show IOHttpClientAdapter;
 import 'package:floating_logger/floating_logger.dart';
 import 'package:floating_logger/src/network/network_model.dart';
 import '../utils/utils_network.dart';

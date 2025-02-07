@@ -15,10 +15,10 @@ class FloatingLoggerModalBottomWidget extends StatefulWidget {
 
   @override
   State<FloatingLoggerModalBottomWidget> createState() =>
-      _FloatingLoggerModalBottomWidgetState();
+      FloatingLoggerModalBottomWidgetState();
 }
 
-class _FloatingLoggerModalBottomWidgetState
+class FloatingLoggerModalBottomWidgetState
     extends State<FloatingLoggerModalBottomWidget> {
   bool isSearchActive = false;
   final ValueNotifier<String> searchQuery = ValueNotifier("");
@@ -38,6 +38,7 @@ class _FloatingLoggerModalBottomWidgetState
   }
 
   void toggleSearch() {
+     if (!mounted) return;
     setState(() {
       if (isSearchActive) {
         searchController.clear();

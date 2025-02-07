@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:convert'; 
 import 'package:floating_logger/floating_logger.dart';
 
 /// A helper class to format logs, specifically for generating curl commands

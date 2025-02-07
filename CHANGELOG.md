@@ -1,6 +1,7 @@
 ## [0.1.1] - Filter and status
 * [update] New Filter and Status 
 * [fix] Toast adjustment
+* [fix] Fix multiple heroes 
 
 ## [0.0.8] - Platform and toast fixed
 * [update] New toastbar 
