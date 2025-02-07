@@ -223,12 +223,12 @@ void widgetFloatingLoggerItemTest() {
           ),
         ),
       );
- 
+
       expect(find.text('Header'), findsNothing);
- 
+
       await tester.tap(find.byType(FloatingLoggerItem));
       await tester.pumpAndSettle(const Duration(seconds: 1));
- 
+
       expect(find.text('Header'), findsOneWidget);
     });
 

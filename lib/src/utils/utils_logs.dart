@@ -1,5 +1,5 @@
 import 'utils.dart';
-import 'dart:developer'; 
+import 'dart:developer';
 import 'package:floating_logger/src/network/network_model.dart';
 
 /// Class for handling logging of information related to Dio requests, responses, and exceptions.

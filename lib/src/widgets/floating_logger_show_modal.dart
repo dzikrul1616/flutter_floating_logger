@@ -38,7 +38,7 @@ class FloatingLoggerModalBottomWidgetState
   }
 
   void toggleSearch() {
-     if (!mounted) return;
+    if (!mounted) return;
     setState(() {
       if (isSearchActive) {
         searchController.clear();
