@@ -80,7 +80,8 @@ class FloatingLoggerModalBottomWidgetState
                               .toLowerCase()
                               .contains(searchValue.toLowerCase());
                           final matchesFilter = filterValue.isEmpty ||
-                              filterValue.contains(log.type);
+                              filterValue.contains(log.type) ||
+                              filterValue.contains(log.method);
                           return matchesSearch && matchesFilter;
                         }).toList();
                         return Column(
@@ -88,7 +89,10 @@ class FloatingLoggerModalBottomWidgetState
                           children: [
                             _buildHandle(),
                             const SizedBox(height: 20.0),
-                            _buildHeader(),
+                            _buildHeader(
+                              logs,
+                              filteredLogs.length,
+                            ),
                             const SizedBox(height: 10.0),
                             PagesFloatingLogger(
                               logsFiltered: filteredLogs,
@@ -108,73 +112,126 @@ class FloatingLoggerModalBottomWidgetState
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(
+    List<LogRepositoryModel> logs,
+    int filterLenght,
+  ) {
+    final screenWidth = MediaQuery.of(context).size.width;
     var outlineInputBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide(color: Colors.black38),
     );
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            IconButton(
-              icon: Icon(
-                Icons.filter_list,
-                color: Colors.black54,
-              ),
-              onPressed: () => _showFilterDialog(),
-            ),
-            ValueListenableBuilder(
-              valueListenable: searchQuery,
-              builder: (context, query, _) {
-                return AnimatedSwitcher(
-                    duration: Duration(milliseconds: 300),
-                    child: isSearchActive
-                        ? Row(
-                            children: [
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.6,
-                                child: TextField(
-                                  controller: searchController,
-                                  onChanged: (value) =>
-                                      searchQuery.value = value,
-                                  decoration: InputDecoration(
-                                      hintText: "Search logs...",
-                                      suffixIcon: IconButton(
-                                        icon: Icon(Icons.close,
-                                            color: Colors.black54),
-                                        onPressed: toggleSearch,
-                                      ),
-                                      focusedBorder: outlineInputBorder,
-                                      border: outlineInputBorder),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.filter_list,
+                    color: Colors.black54,
+                  ),
+                  onPressed: () => _showFilterDialog(logs),
+                ),
+                ValueListenableBuilder(
+                  valueListenable: searchQuery,
+                  builder: (context, query, _) {
+                    return AnimatedSwitcher(
+                      duration: Duration(milliseconds: 300),
+                      child: isSearchActive
+                          ? Row(
+                              children: [
+                                SizedBox(
+                                  width: screenWidth < 550 && screenWidth >= 350
+                                      ? 200
+                                      : screenWidth < 350
+                                          ? 100
+                                          : 400,
+                                  child: TextField(
+                                    controller: searchController,
+                                    onChanged: (value) =>
+                                        searchQuery.value = value,
+                                    decoration: InputDecoration(
+                                        hintText: "Search logs...",
+                                        suffixIcon: IconButton(
+                                          icon: Icon(Icons.close,
+                                              color: Colors.black54),
+                                          onPressed: toggleSearch,
+                                        ),
+                                        focusedBorder: outlineInputBorder,
+                                        border: outlineInputBorder),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          )
-                        : IconButton(
-                            key: ValueKey("searchIcon"),
-                            icon: Icon(
-                              Icons.search,
-                              color: Colors.black54,
+                              ],
+                            )
+                          : Row(
+                              children: [
+                                IconButton(
+                                  key: ValueKey("searchIcon"),
+                                  icon: Icon(
+                                    Icons.search,
+                                    color: Colors.black54,
+                                  ),
+                                  onPressed: toggleSearch,
+                                ),
+                                filterLenght == 0
+                                    ? const SizedBox.shrink()
+                                    : Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 8,
+                                        ),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            color: Colors.blue[300],
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 4,
+                                              horizontal: 8,
+                                            ),
+                                            child: Text(
+                                              'Total Data : $filterLenght',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.normal,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                              ],
                             ),
-                            onPressed: toggleSearch,
-                          ));
-              },
+                    );
+                  },
+                ),
+              ],
             ),
+            _buildClearButton(),
           ],
         ),
-        _buildClearButton(),
       ],
     );
   }
 
-  void _showFilterDialog() {
+  void _showFilterDialog(List<LogRepositoryModel> logs) {
     final List<FilterLabelModel> logTypes = [
       FilterLabelModel(title: 'REQUEST', color: Colors.grey),
       FilterLabelModel(title: 'RESPONSE', color: Colors.blue),
       FilterLabelModel(title: 'ERROR', color: Colors.red),
+      FilterLabelModel(title: 'GET', color: Colors.green),
+      FilterLabelModel(title: 'POST', color: Color(0xffFFB700)),
+      FilterLabelModel(title: 'PUT', color: Colors.blue),
+      FilterLabelModel(title: 'PATCH', color: Colors.purpleAccent),
+      FilterLabelModel(title: 'OPTIONS', color: Colors.purple),
+      FilterLabelModel(title: 'HEAD', color: Colors.greenAccent),
+      FilterLabelModel(title: 'DELETE', color: Colors.red),
     ];
 
     showDialog(
@@ -182,7 +239,10 @@ class FloatingLoggerModalBottomWidgetState
       builder: (context) => AlertDialog(
         title: Text(
           'Filter Logs',
-          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
+          style: GoogleFonts.inter(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         content: SizedBox(
           width: double.maxFinite,
@@ -208,35 +268,39 @@ class FloatingLoggerModalBottomWidgetState
                     ),
                   ),
                   const SizedBox(
-                    height: 5,
+                    height: 10,
                   ),
-                  ...logTypes.map((entry) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: ElevatedButton(
+                  Wrap(
+                    spacing: 8.0,
+                    runSpacing: 8.0,
+                    children: logTypes.map((entry) {
+                      int logCount = logs
+                          .where(
+                            (log) =>
+                                log.type == entry.title ||
+                                log.method == entry.title,
+                          )
+                          .length;
+                      return ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: filters.contains(entry.title)
                               ? entry.color
                               : Colors.grey[200],
                         ),
                         onPressed: () => toggleFilter(entry.title),
-                        child: Row(
-                          children: [
-                            Text(
-                              entry.title,
-                              style: GoogleFonts.inter(
-                                color: filters.contains(entry.title)
-                                    ? Colors.white
-                                    : Colors.black54,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          '${entry.title} ($logCount)',
+                          style: GoogleFonts.inter(
+                            color: filters.contains(entry.title)
+                                ? Colors.white
+                                : Colors.black54,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
                         ),
-                      ),
-                    );
-                  }),
+                      );
+                    }).toList(),
+                  ),
                 ],
               );
             },
