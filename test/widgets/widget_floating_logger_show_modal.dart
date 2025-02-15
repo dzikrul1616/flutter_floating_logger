@@ -219,7 +219,7 @@ void widgetFloatingLoggerShowModalTest() {
 
         await tester.tap(buttonFinder);
         await tester.pumpAndSettle();
-        final activeButton = tester.widget<ElevatedButton>(buttonFinder);
+        tester.widget<ElevatedButton>(buttonFinder);
 
         await tester.tap(buttonFinder);
         await tester.pumpAndSettle();
