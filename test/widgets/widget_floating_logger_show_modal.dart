@@ -133,18 +133,97 @@ void widgetFloatingLoggerShowModalTest() {
 
       expect(find.text('Filter Logs'), findsOneWidget);
 
-      await tester.tap(find.text('REQUEST'));
+      find.byType(ElevatedButton);
+
+      final postTextFinder = find.text('POST (0)');
+      expect(postTextFinder, findsOneWidget);
+
+      final postButton = find.ancestor(
+        of: postTextFinder,
+        matching: find.byType(ElevatedButton),
+      );
+      expect(postButton, findsOneWidget);
+
+      await tester.tap(postButton);
       await tester.pumpAndSettle();
 
       final state = tester.state<FloatingLoggerModalBottomWidgetState>(
         find.byType(FloatingLoggerModalBottomWidget),
       );
-      expect(state.activeFilters.value, contains('REQUEST'));
 
-      await tester.tap(find.text('REQUEST'));
+      expect(state.activeFilters.value, contains('POST'));
+
+      await tester.tap(postButton);
       await tester.pumpAndSettle();
 
-      expect(state.activeFilters.value, isNot(contains('REQUEST')));
+      expect(state.activeFilters.value, isNot(contains('POST')));
+    });
+
+    testWidgets('Verify logCount and ElevatedButton rendering in filter dialog',
+        (WidgetTester tester) async {
+      final logs = [
+        LogRepositoryModel(type: 'POST', method: 'POST', path: '/api/test'),
+        LogRepositoryModel(type: 'GET', method: 'GET', path: '/api/test'),
+        LogRepositoryModel(type: 'ERROR', method: 'ERROR', path: '/api/test'),
+      ];
+
+      DioLogger.instance.logs.logsNotifier.value = logs;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerModalBottomWidget(),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.filter_list));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Filter Logs'), findsOneWidget);
+
+      final logTypes = [
+        'REQUEST',
+        'RESPONSE',
+        'ERROR',
+        'GET',
+        'POST',
+        'PUT',
+        'PATCH',
+        'OPTIONS',
+        'HEAD',
+        'DELETE',
+      ];
+
+      for (final entry in logTypes) {
+        final expectedLogCount = logs
+            .where(
+              (log) => log.type == entry || log.method == entry,
+            )
+            .length;
+
+        final buttonTextFinder = find.text('$entry ($expectedLogCount)');
+        expect(buttonTextFinder, findsOneWidget);
+
+        final buttonFinder = find.ancestor(
+          of: buttonTextFinder,
+          matching: find.byType(ElevatedButton),
+        );
+        expect(buttonFinder, findsOneWidget);
+
+        final button = tester.widget<ElevatedButton>(buttonFinder);
+        expect(
+          button.style?.backgroundColor?.resolve({}),
+          equals(Colors.grey[200]),
+        );
+
+        await tester.tap(buttonFinder);
+        await tester.pumpAndSettle();
+        final activeButton = tester.widget<ElevatedButton>(buttonFinder);
+
+        await tester.tap(buttonFinder);
+        await tester.pumpAndSettle();
+      }
     });
 
     testWidgets('UI displays filtered logs based on search and filter',

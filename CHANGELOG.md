@@ -1,3 +1,8 @@
+## [0.1.2] - Filter and status
+* [update] change filter to wrap ui
+* [update] add method filter
+* [update] update lenght on filter and item
+
 ## [0.1.1] - Filter and status
 * [update] New Filter and Status 
 * [fix] Toast adjustment
