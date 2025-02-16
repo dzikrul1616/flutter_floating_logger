@@ -17,7 +17,7 @@
   <a href="https://github.com/dzikrul1616/flutter_floating_logger/actions/workflows/testing.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/dzikrul1616/flutter_floating_logger/testing.yml?label=CI&style=social" alt="GitHub Actions" />
   </a>
-  <img src="https://img.shields.io/badge/pub-v0.1.2-orange.svg" alt="Version" />
+  <img src="https://img.shields.io/badge/pub-v0.1.3-orange.svg" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License" />
   <a href="https://github.com/dzikrul1616/flutter_floating_logger/issues">
     <img src="https://img.shields.io/badge/Issues-Open-brightgreen.svg" alt="Issues" />
@@ -301,3 +301,4 @@ Explanation:
 `floating_logger` is a powerful tool that simplifies debugging API calls in Flutter applications. Whether you need to inspect responses, copy cURL commands, or customize the UI, this package provides a seamless experience for developers. Integrate it today and streamline your debugging process! 🚀
 
 📌 **For more details, visit the [GitHub Repository](https://github.com/dzikrul1616/flutter_floating_logger).**
+📌 **For floating logger boilerplate, visit the [Boilerplate Repository](https://github.com/dzikrul1616/floating_logger_boilerplate).**

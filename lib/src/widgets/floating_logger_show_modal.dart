@@ -76,12 +76,30 @@ class FloatingLoggerModalBottomWidgetState
                       builder: (context, logs, ___) {
                         List<LogRepositoryModel> filteredLogs =
                             logs.where((log) {
+                          final hasTypeFilter = filterValue.contains(log.type);
+                          final hasMethodFilter =
+                              filterValue.contains(log.method);
+
+                          final selectedTypes = filterValue
+                              .where((f) =>
+                                  ["REQUEST", "RESPONSE", "ERROR"].contains(f))
+                              .toSet();
+                          final selectedMethods =
+                              filterValue.difference(selectedTypes);
                           final matchesSearch = log.path!
                               .toLowerCase()
                               .contains(searchValue.toLowerCase());
                           final matchesFilter = filterValue.isEmpty ||
-                              filterValue.contains(log.type) ||
-                              filterValue.contains(log.method);
+                              (selectedTypes.isNotEmpty &&
+                                  selectedMethods.isEmpty &&
+                                  hasTypeFilter) ||
+                              (selectedMethods.isNotEmpty &&
+                                  selectedTypes.isEmpty &&
+                                  hasMethodFilter) ||
+                              (selectedTypes.isNotEmpty &&
+                                  selectedMethods.isNotEmpty &&
+                                  hasTypeFilter &&
+                                  hasMethodFilter);
                           return matchesSearch && matchesFilter;
                         }).toList();
                         return Column(
