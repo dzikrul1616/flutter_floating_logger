@@ -1,3 +1,6 @@
+## [0.1.3] - Fixed filter type & method
+* [fix] fixed selected filter method and type
+
 ## [0.1.2] - Filter and status
 * [update] change filter to wrap ui
 * [update] add method filter
