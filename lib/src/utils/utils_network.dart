@@ -1,4 +1,4 @@
-import '../network/network_model.dart';
+import '../network/network.dart';
 import 'utils.dart';
 
 /// A network logger interceptor for Dio that logs requests, responses, and errors
@@ -44,13 +44,15 @@ class LoggerNetworkSettings {
     LogRepository logRepository,
   ) {
     final curlCommand = FormatLogger.generateCurlCommand(options);
-    LoggerLogsData.logMessage<RequestOptions>(
-      options,
-      AnsiColor.magenta,
-      logRepository,
-      curlCommand,
-      name: "REQ",
-    );
+    if (DioLogger.shouldLogNotifier.value) {
+      LoggerLogsData.logMessage<RequestOptions>(
+        options,
+        AnsiColor.magenta,
+        logRepository,
+        curlCommand,
+        name: "REQ",
+      );
+    }
     handler.next(options);
   }
 
@@ -66,13 +68,15 @@ class LoggerNetworkSettings {
   ) {
     final curlCommand =
         FormatLogger.generateCurlCommand(response.requestOptions);
-    LoggerLogsData.logMessage<Response<dynamic>>(
-      response,
-      AnsiColor.green,
-      logRepository,
-      curlCommand,
-      name: "RES",
-    );
+    if (DioLogger.shouldLogNotifier.value) {
+      LoggerLogsData.logMessage<Response<dynamic>>(
+        response,
+        AnsiColor.green,
+        logRepository,
+        curlCommand,
+        name: "RES",
+      );
+    }
     handler.next(response);
   }
 
@@ -87,13 +91,15 @@ class LoggerNetworkSettings {
     LogRepository logRepository,
   ) {
     final curlCommand = FormatLogger.generateCurlCommand(error.requestOptions);
-    LoggerLogsData.logMessage<DioException>(
-      error,
-      AnsiColor.red,
-      logRepository,
-      curlCommand,
-      name: "ERR",
-    );
+    if (DioLogger.shouldLogNotifier.value) {
+      LoggerLogsData.logMessage<DioException>(
+        error,
+        AnsiColor.red,
+        logRepository,
+        curlCommand,
+        name: "ERR",
+      );
+    }
     handler.reject(error);
   }
 

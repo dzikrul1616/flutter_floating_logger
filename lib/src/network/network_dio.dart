@@ -3,6 +3,7 @@ import 'package:floating_logger/floating_logger.dart';
 import 'package:floating_logger/src/network/network_model.dart';
 import '../utils/utils_network.dart';
 import 'package:flutter/foundation.dart' as foundation; // For kIsWeb
+import 'dart:io';
 
 /// A custom Dio instance with integrated logging functionality.
 ///
@@ -41,8 +42,13 @@ class DioLogger with DioMixin implements Dio {
       // Web-specific adapter (ensure this is used for Web)
       httpClientAdapter = HttpClientAdapter();
     } else {
-      // For non-web platforms like mobile, use IOHttpClientAdapter
-      httpClientAdapter = IOHttpClientAdapter();
+      // For non-web platforms like mobile, use IOHttpClientAdapter with SSL bypass
+      httpClientAdapter = IOHttpClientAdapter()
+        ..createHttpClient = () {
+          final client = HttpClient();
+          client.badCertificateCallback = (cert, host, port) => true;
+          return client;
+        };
     }
 
     // Add default interceptors
@@ -71,6 +77,9 @@ class DioLogger with DioMixin implements Dio {
 
   /// Returns the singleton instance of [DioLogger].
   static DioLogger get instance => _instance;
+
+  static final ValueNotifier<bool> shouldLogNotifier =
+      ValueNotifier<bool>(true);
 
   /// Provides access to the log repository instance.
   LogRepository get logs => _logRepository;
