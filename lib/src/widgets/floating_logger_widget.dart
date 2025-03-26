@@ -51,6 +51,7 @@ class _FloatingLoggerControlState extends State<FloatingLoggerControl> {
     }
     setState(() {
       isShow = data;
+      DioLogger.shouldLogNotifier.value = data;
     });
   }
 

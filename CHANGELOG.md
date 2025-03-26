@@ -1,3 +1,6 @@
+## [0.1.4] - Stabilize RSS and Garbage Collection usage
+* [fix] false pref without added logger background
+
 ## [0.1.3] - Fixed filter type & method
 * [fix] fixed selected filter method and type
 
