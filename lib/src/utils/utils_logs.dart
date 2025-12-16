@@ -41,10 +41,31 @@ class LoggerLogsData {
   /// Retrieves the payload or response body from the given data.
   /// Supports `RequestOptions`, `Response`, and `DioException`.
   static dynamic _getData<T>(T data) {
-    if (data is RequestOptions) return data.data;
+    if (data is RequestOptions) {
+      if (data.data is FormData) {
+        return _formDataToMap(data.data as FormData);
+      }
+      return data.data;
+    }
     if (data is Response<dynamic>) return data.data;
     if (data is DioException) return data.response?.data;
     return data; // Fallback for unsupported data types
+  }
+
+  static Map<String, dynamic> _formDataToMap(FormData data) {
+    final map = <String, dynamic>{};
+    for (var entry in data.fields) {
+      map[entry.key] = entry.value;
+    }
+    for (var entry in data.files) {
+      // Create a simplified representation for MultipartFile
+      map[entry.key] = {
+        'filename': entry.value.filename,
+        'length': entry.value.length,
+        'contentType': entry.value.contentType?.toString(),
+      };
+    }
+    return map;
   }
 
   // Helper method to retrieve headers
@@ -104,6 +125,7 @@ class LoggerLogsData {
     LogRepository logRepository,
     String curlCommand, {
     String name = "Log",
+    int? duration,
   }) {
     // Extract individual log components from the data
     final method = getMethod(data);
@@ -118,6 +140,7 @@ class LoggerLogsData {
     final logMessage = "${color}Method  :${AnsiColor.reset} $method\n"
         "${color}Url     :${AnsiColor.reset} $url\n"
         "${color}Status  :${AnsiColor.reset} $statusCode \n"
+        "${color}Duration:${AnsiColor.reset} ${duration != null ? '$duration ms' : '-'}\n"
         "${color}Message :${AnsiColor.reset} ${message.isEmpty ? '-' : message}\n"
         "${color}Param   :\n${AnsiColor.reset}${FormatLogger.parseJson(param)}\n"
         "${color}Data    :\n${AnsiColor.reset}${FormatLogger.parseJson(dataText)}\n"
@@ -146,6 +169,7 @@ class LoggerLogsData {
         queryparameter: FormatLogger.parseJson(param),
         header: FormatLogger.parseJson(headers),
         message: message,
+        responseTime: duration,
         curl: curlCommand,
       ),
     );

@@ -1,3 +1,8 @@
+## [0.1.5] - Runtime and fixing formdata request
+* [fix] add runtime to logger
+* [fix] fixing formdata request
+* [update] update coverage code 99%
+
 ## [0.1.4] - Stabilize RSS and Garbage Collection usage
 * [fix] false pref without added logger background
 

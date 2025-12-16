@@ -37,19 +37,8 @@ class DioLogger with DioMixin implements Dio {
           milliseconds: 30000), // Set response receiving timeout to 30 seconds.
     );
 
-    // Conditional HTTP client adapter based on platform
-    if (foundation.kIsWeb) {
-      // Web-specific adapter (ensure this is used for Web)
-      httpClientAdapter = HttpClientAdapter();
-    } else {
-      // For non-web platforms like mobile, use IOHttpClientAdapter with SSL bypass
-      httpClientAdapter = IOHttpClientAdapter()
-        ..createHttpClient = () {
-          final client = HttpClient();
-          client.badCertificateCallback = (cert, host, port) => true;
-          return client;
-        };
-    }
+    // Set the HTTP client adapter using the helper method
+    httpClientAdapter = createAdapter(isWeb: foundation.kIsWeb);
 
     // Add default interceptors
     addDefaultInterceptors();
@@ -115,6 +104,26 @@ class DioLogger with DioMixin implements Dio {
   void addListInterceptor(List<Interceptor> interceptorsList) {
     for (var interceptor in interceptorsList) {
       interceptors.add(interceptor);
+    }
+  }
+
+  /// Creates and returns the appropriate HttpClientAdapter based on the platform.
+  ///
+  /// - [isWeb]: If true, returns the default [HttpClientAdapter] (for web).
+  /// - If false, returns [IOHttpClientAdapter] with SSL verification disabled.
+  @foundation.visibleForTesting
+  static HttpClientAdapter createAdapter({bool isWeb = foundation.kIsWeb}) {
+    if (isWeb) {
+      // Web-specific adapter (ensure this is used for Web)
+      return HttpClientAdapter();
+    } else {
+      // For non-web platforms like mobile, use IOHttpClientAdapter with SSL bypass
+      return IOHttpClientAdapter()
+        ..createHttpClient = () {
+          final client = HttpClient();
+          client.badCertificateCallback = (cert, host, port) => true;
+          return client;
+        };
     }
   }
 }

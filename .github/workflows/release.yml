@@ -1,0 +1,102 @@
+name: Auto Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  test_and_pub:
+    runs-on: ubuntu-latest
+    name: Run Tests & Check Pub
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.2'
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Tests
+        run: flutter test
+
+      - name: Verify Pub Verification
+        run: dart pub publish --dry-run
+        
+  release:
+    needs: test_and_pub
+    runs-on: ubuntu-latest
+    name: Create Tag & Release
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Read Version from pubspec.yaml
+        id: get_version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Detected version: $VERSION"
+
+      - name: Check if Tag Exists
+        id: check_tag
+        run: |
+          if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
+            echo "Tag v${{ env.VERSION }} already exists."
+            echo "EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "Tag v${{ env.VERSION }} does not exist."
+            echo "EXISTS=false" >> $GITHUB_ENV
+          fi
+
+      - name: Extract Changelog Entry
+        if: env.EXISTS == 'false'
+        id: get_changelog
+        run: |
+          VERSION="${{ env.VERSION }}"
+          # Extract content between the current version header and the next header
+          # Assuming header format: ## [version] - title
+          # We search for "## [0.1.5]" and read until the next "## ["
+          
+          # Escape dots for regex
+          ESCAPED_VERSION=$(echo $VERSION | sed 's/\./\\./g')
+          
+          # Extract the block. 
+          # 1. Find the line starting with "## [$VERSION]"
+          # 2. Print lines until the next "## [" or EOF
+          # 3. sed '1d' removes the header line itself to just keep the body
+          
+          CHANGELOG_BODY=$(awk "/^## \[$ESCAPED_VERSION\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md)
+          
+          # Handle multiline string for GITHUB_ENV
+          echo "CHANGELOG_BODY<<EOF" >> $GITHUB_ENV
+          echo "$CHANGELOG_BODY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create Git Tag
+        if: env.EXISTS == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ env.VERSION }}" -m "Release v${{ env.VERSION }}"
+          git push origin "v${{ env.VERSION }}"
+
+      - name: Create GitHub Release
+        if: env.EXISTS == 'false'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: v${{ env.VERSION }}
+          body: ${{ env.CHANGELOG_BODY }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

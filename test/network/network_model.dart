@@ -3,9 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void networkModel() {
   group('Network Model', () {
-    // Test: Model creation from JSON
     test('LogRepositoryModel should be created from JSON', () {
-      // Example JSON input
       final json = {
         "type": "GET",
         "response": "200 OK",
@@ -17,10 +15,8 @@ void networkModel() {
         "curl": "curl -X GET https://example.com"
       };
 
-      // Create LogRepositoryModel from JSON
       final log = LogRepositoryModel.fromJson(json);
 
-      // Verify that the values are assigned correctly
       expect(log.type, "GET");
       expect(log.response, "200 OK");
       expect(log.queryparameter, "id=1");
@@ -31,9 +27,7 @@ void networkModel() {
       expect(log.curl, "curl -X GET https://example.com");
     });
 
-    // Test: Model to JSON conversion
     test('LogRepositoryModel should convert to JSON correctly', () {
-      // Create LogRepositoryModel instance
       final log = LogRepositoryModel(
         type: "POST",
         response: "404 Not Found",
@@ -43,12 +37,11 @@ void networkModel() {
         responseData: '{"error": "Not found"}',
         message: "Request failed",
         curl: "curl -X POST https://example.com",
+        responseTime: 100,
       );
 
-      // Convert to JSON
       final json = log.toJson();
 
-      // Verify the converted JSON values
       expect(json["type"], "POST");
       expect(json["response"], "404 Not Found");
       expect(json["queryparameter"], "id=2");
@@ -57,11 +50,10 @@ void networkModel() {
       expect(json["response_data"], '{"error": "Not found"}');
       expect(json["message"], "Request failed");
       expect(json["curl"], "curl -X POST https://example.com");
+      expect(json["response_time"], 100);
     });
 
-    // Test: Equality check
     test('LogRepositoryModel should be equal based on properties', () {
-      // Create two instances with the same data
       final log1 = LogRepositoryModel(
         type: "GET",
         response: "200 OK",
@@ -71,6 +63,7 @@ void networkModel() {
         responseData: '{"id": 1, "name": "John"}',
         message: "Request successful",
         curl: "curl -X GET https://example.com",
+        responseTime: 200,
       );
       final log2 = LogRepositoryModel(
         type: "GET",
@@ -81,12 +74,11 @@ void networkModel() {
         responseData: '{"id": 1, "name": "John"}',
         message: "Request successful",
         curl: "curl -X GET https://example.com",
+        responseTime: 200,
       );
 
-      // Verify that they are equal
       expect(log1, equals(log2));
 
-      // Create an instance with different data
       final log3 = LogRepositoryModel(
         type: "POST",
         response: "404 Not Found",
@@ -98,13 +90,10 @@ void networkModel() {
         curl: "curl -X POST https://example.com",
       );
 
-      // Verify that it is not equal to the previous logs
       expect(log1, isNot(equals(log3)));
     });
 
-    // Test: toString method
     test('LogRepositoryModel should format toString correctly', () {
-      // Create LogRepositoryModel instance
       final log = LogRepositoryModel(
         type: "REQUEST",
         method: "GET",
@@ -115,11 +104,11 @@ void networkModel() {
         responseData: '{"id": 1, "name": "John"}',
         message: "Request successful",
         curl: "curl -X GET https://example.com",
+        responseTime: 150,
       );
 
-      // Verify the toString method output
       expect(log.toString(),
-          "REQUEST, GET, 200 OK, Content-Type: application/json, id=1, {\"name\": \"John\"}, {\"id\": 1, \"name\": \"John\"}, null, Request successful, curl -X GET https://example.com");
+          "REQUEST, GET, 200 OK, Content-Type: application/json, id=1, {\"name\": \"John\"}, {\"id\": 1, \"name\": \"John\"}, null, 150, Request successful, curl -X GET https://example.com");
     });
   });
 }

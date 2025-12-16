@@ -1,4 +1,5 @@
 import 'package:floating_logger/src/utils/utils.dart';
+import 'package:floating_logger/src/network/network_model.dart';
 import '../test.dart';
 
 void utilsLogs() {
@@ -125,7 +126,37 @@ void utilsLogs() {
 
       // Check if the logRepository.addLog is called
       verify(mockLogRepository.addLog(any)).called(1);
-      // Check if the log is constructed correctly (for the purpose of this test we skip actual string matching)
+    });
+
+    test('should correctly parse FormData in logMessage', () async {
+      final formData = FormData.fromMap({
+        'name': 'John',
+        'file': MultipartFile.fromString('file content', filename: 'test.txt'),
+      });
+
+      final options = RequestOptions(
+        method: 'POST',
+        path: 'https://example.com/upload',
+        data: formData,
+      );
+
+      LoggerLogsData.logMessage(
+        options,
+        AnsiColor.green,
+        mockLogRepository,
+        curlCommand,
+      );
+
+      final captured = verify(mockLogRepository.addLog(captureAny)).captured;
+      final logModel = captured.first as LogRepositoryModel;
+
+      // Verify parsing
+      // data field in model is String (json string)
+      final parsedData = logModel.data as String;
+      expect(parsedData.contains('"name": "John"'), isTrue);
+      expect(parsedData.contains('"filename": "test.txt"'), isTrue);
+      // We expect length to be present. length of 'file content' is 12 bytes.
+      expect(parsedData.contains('"length": 12'), isTrue);
     });
   });
 }
