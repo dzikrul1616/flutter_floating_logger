@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:dio/io.dart';
 import 'package:floating_logger/src/network/network.dart';
 import 'package:floating_logger/src/utils/utils.dart';
 import '../test.dart';
@@ -186,5 +189,101 @@ void networkDio() {
       expect(dioLogger.interceptors[4], mockInterceptor);
       expect(dioLogger.interceptors[5], mockInterceptor2);
     });
+
+    test(
+        'Default interceptors should be added correctly and invoke LoggerNetworkSettings',
+        () {
+      final dioInstance = DioLogger.instance;
+      final wrapper = dioInstance.interceptors.firstWhere(
+        (i) => i is InterceptorsWrapper,
+      ) as InterceptorsWrapper;
+
+      expect(wrapper, isNotNull);
+
+      final initialLogCount = dioInstance.logs.logsNotifier.value.length;
+
+      final options = RequestOptions(path: '/test_interceptor');
+      final reqHandler = MockRequestInterceptorHandler();
+      wrapper.onRequest(options, reqHandler);
+
+      // Verify real repository updated
+      expect(dioInstance.logs.logsNotifier.value.length, initialLogCount + 1);
+      expect(dioInstance.logs.logsNotifier.value.first.path,
+          contains('/test_interceptor'));
+
+      final response = Response(requestOptions: options, statusCode: 200);
+      final resHandler = MockResponseInterceptorHandler();
+      wrapper.onResponse(response, resHandler);
+      expect(dioInstance.logs.logsNotifier.value.length, initialLogCount + 2);
+
+      final error = DioException(requestOptions: options);
+      final errHandler = MockErrorInterceptorHandler();
+      wrapper.onError(error, errHandler);
+      expect(dioInstance.logs.logsNotifier.value.length, initialLogCount + 3);
+    });
+
+    test('HttpClient adapter should have badCertificateCallback configured',
+        () {
+      final dioInstance = DioLogger.instance;
+      if (!kIsWeb) {
+        HttpOverrides.runZoned(() {
+          final adapter = dioInstance.httpClientAdapter as IOHttpClientAdapter;
+          final client = adapter.createHttpClient!();
+
+          expect(client, isA<MockHttpClient>());
+          final mockClient = client as MockHttpClient;
+
+          final captured =
+              verify(mockClient.badCertificateCallback = captureAny).captured;
+          expect(captured.length, 1);
+
+          final callback =
+              captured.first as bool Function(X509Certificate, String, int);
+
+          final result = callback(_createMockCertificate(), 'example.com', 443);
+          expect(result, isTrue);
+        }, createHttpClient: (context) => MockHttpClient());
+      }
+    });
+
+    test('createAdapter should return HttpClientAdapter when isWeb is true',
+        () {
+      final adapter = DioLogger.createAdapter(isWeb: true);
+      expect(adapter, isA<HttpClientAdapter>());
+    });
+
+    test('Custom 401 interceptor should detect 401 status', () async {
+      final dioInstance = DioLogger.instance;
+      bool logoutTriggered = false;
+
+      dioInstance.addInterceptor(InterceptorsWrapper(
+        onError: (error, handler) async {
+          if (error.response?.statusCode == 401) {
+            logoutTriggered = true;
+          }
+          handler.next(error);
+        },
+      ));
+
+      final wrapper = dioInstance.interceptors.last as InterceptorsWrapper;
+      final mockErr = DioException(
+        requestOptions: RequestOptions(path: '/'),
+        response: Response(
+            requestOptions: RequestOptions(path: '/'), statusCode: 401),
+      );
+      final handler = MockErrorInterceptorHandler();
+
+      wrapper.onError(mockErr, handler);
+
+      expect(logoutTriggered, isTrue);
+    });
   });
+}
+
+class MockHttpClient extends Mock implements HttpClient {}
+
+class _MockX509Certificate extends Mock implements X509Certificate {}
+
+X509Certificate _createMockCertificate() {
+  return _MockX509Certificate();
 }

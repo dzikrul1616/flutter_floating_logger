@@ -60,6 +60,9 @@ class LogRepositoryModel extends Equatable {
   /// The API path or endpoint used for the request.
   final String? path;
 
+  /// Response time in milliseconds
+  final int? responseTime;
+
   /// Additional message related to the log, often used for debugging or extra information.
   final String? message;
 
@@ -75,6 +78,7 @@ class LogRepositoryModel extends Equatable {
     this.data,
     this.responseData,
     this.path,
+    this.responseTime,
     this.message,
     this.curl,
   });
@@ -89,6 +93,8 @@ class LogRepositoryModel extends Equatable {
       header: json["header"] ?? "",
       data: json["data"] ?? "",
       responseData: json["response_data"] ?? "",
+      path: json["path"] ?? "",
+      responseTime: json["response_time"],
       message: json["message"] ?? "",
       curl: json["curl"] ?? "",
     );
@@ -104,6 +110,7 @@ class LogRepositoryModel extends Equatable {
         "data": data,
         "response_data": responseData,
         "path": path,
+        "response_time": responseTime,
         "message": message,
         "curl": curl,
       };
@@ -111,7 +118,7 @@ class LogRepositoryModel extends Equatable {
   /// Overrides the `toString` method to format log information as a string.
   @override
   String toString() {
-    return "$type, $method, $response, $header, $queryparameter, $data, $responseData, $path, $message, $curl";
+    return "$type, $method, $response, $header, $queryparameter, $data, $responseData, $path, $responseTime, $message, $curl";
   }
 
   /// Properties used by `Equatable` for object comparison.
@@ -125,6 +132,7 @@ class LogRepositoryModel extends Equatable {
         data,
         responseData,
         path,
+        responseTime,
         message,
         curl,
       ];

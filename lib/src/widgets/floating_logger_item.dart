@@ -26,10 +26,7 @@ class FloatingLoggerItem extends StatefulWidget {
   State<FloatingLoggerItem> createState() => _FloatingLoggerItemState();
 }
 
-class _FloatingLoggerItemState extends State<FloatingLoggerItem>
-    with TickerProviderStateMixin {
-  late AnimationController _expandAnimationController;
-
+class _FloatingLoggerItemState extends State<FloatingLoggerItem> {
   // ValueNotifier to track expansion state of log item
   ValueNotifier<bool> isExpand = ValueNotifier(true);
 
@@ -38,15 +35,10 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
   @override
   void initState() {
     super.initState();
-    _expandAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
   }
 
   @override
   void dispose() {
-    _expandAnimationController.dispose();
     isExpand.dispose();
     super.dispose();
   }
@@ -64,12 +56,6 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
             onLongPress: () => copyCurlToClipboard(context),
             onTap: () {
               isExpand.value = !value;
-              if (_expandAnimationController.isAnimating) return;
-              if (value) {
-                _expandAnimationController.reverse(); // Collapse
-              } else {
-                _expandAnimationController.forward(); // Expand
-              }
             },
             child: Padding(
               padding: const EdgeInsets.all(5),
@@ -282,6 +268,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
     var message = widget.data.message;
     var header = widget.data.header;
     var curl = widget.data.curl;
+    var responseTime = widget.data.responseTime;
     return Column(
       children: [
         Divider(
@@ -290,6 +277,12 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
             isBorder: true,
           ),
         ),
+        responseTime == null
+            ? _empty
+            : _codeFieldCopy(
+                'Response Time',
+                "$responseTime ms",
+              ),
         message == null || message.isEmpty
             ? _empty
             : _codeFieldCopy(
@@ -349,8 +342,8 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
                   GestureDetector(
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: data)).then((_) {
+                        if (!mounted) return;
                         LoggerToast.successToast(
-                          // ignore: use_build_context_synchronously
                           context,
                           "Successfully copied $title",
                         );

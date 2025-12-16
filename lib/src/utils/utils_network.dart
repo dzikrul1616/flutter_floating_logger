@@ -38,11 +38,17 @@ class LoggerNetworkSettings {
   /// - Converts the request into a cURL command for debugging.
   /// - Logs the request details in magenta.
   /// - Passes the request to the next handler.
+  /// Logs and processes an outgoing request.
+  ///
+  /// - Converts the request into a cURL command for debugging.
+  /// - Logs the request details in magenta.
+  /// - Passes the request to the next handler.
   static void onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
     LogRepository logRepository,
   ) {
+    options.extra['start_time'] = DateTime.now().millisecondsSinceEpoch;
     final curlCommand = FormatLogger.generateCurlCommand(options);
     if (DioLogger.shouldLogNotifier.value) {
       LoggerLogsData.logMessage<RequestOptions>(
@@ -68,6 +74,11 @@ class LoggerNetworkSettings {
   ) {
     final curlCommand =
         FormatLogger.generateCurlCommand(response.requestOptions);
+    int? duration;
+    if (response.requestOptions.extra['start_time'] != null) {
+      final startTime = response.requestOptions.extra['start_time'] as int;
+      duration = DateTime.now().millisecondsSinceEpoch - startTime;
+    }
     if (DioLogger.shouldLogNotifier.value) {
       LoggerLogsData.logMessage<Response<dynamic>>(
         response,
@@ -75,6 +86,7 @@ class LoggerNetworkSettings {
         logRepository,
         curlCommand,
         name: "RES",
+        duration: duration,
       );
     }
     handler.next(response);
@@ -91,6 +103,11 @@ class LoggerNetworkSettings {
     LogRepository logRepository,
   ) {
     final curlCommand = FormatLogger.generateCurlCommand(error.requestOptions);
+    int? duration;
+    if (error.requestOptions.extra['start_time'] != null) {
+      final startTime = error.requestOptions.extra['start_time'] as int;
+      duration = DateTime.now().millisecondsSinceEpoch - startTime;
+    }
     if (DioLogger.shouldLogNotifier.value) {
       LoggerLogsData.logMessage<DioException>(
         error,
@@ -98,6 +115,7 @@ class LoggerNetworkSettings {
         logRepository,
         curlCommand,
         name: "ERR",
+        duration: duration,
       );
     }
     handler.reject(error);

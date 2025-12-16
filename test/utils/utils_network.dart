@@ -10,7 +10,8 @@ void utilsNetwork() {
       mockLogRepository = MockLogRepository();
     });
 
-    test('onRequest should log request details and call next', () {
+    test('onRequest should log request details, set start_time, and call next',
+        () {
       final options = RequestOptions(
         method: 'GET',
         path: 'https://example.com',
@@ -19,14 +20,18 @@ void utilsNetwork() {
 
       LoggerNetworkSettings.onRequest(options, handler, mockLogRepository);
 
+      expect(options.extra.containsKey('start_time'), isTrue);
       verify(mockLogRepository.addLog(any)).called(1);
       verify(handler.next(options)).called(1);
     });
 
-    test('onResponse should log response details and call next', () {
+    test(
+        'onResponse should log response details, calculate duration, and call next',
+        () async {
       final options = RequestOptions(
         method: 'POST',
         path: 'https://example.com',
+        extra: {'start_time': DateTime.now().millisecondsSinceEpoch - 100},
       );
       final response = Response<dynamic>(
         requestOptions: options,
@@ -35,16 +40,24 @@ void utilsNetwork() {
       );
       final handler = MockResponseInterceptorHandler();
 
+      // Add a small delay to ensure time difference
+      await Future.delayed(const Duration(milliseconds: 10));
+
       LoggerNetworkSettings.onResponse(response, handler, mockLogRepository);
 
-      verify(mockLogRepository.addLog(any)).called(1);
+      final captured = verify(mockLogRepository.addLog(captureAny)).captured;
+      final logModel = captured.first as LogRepositoryModel;
+      expect(logModel.responseTime, greaterThanOrEqualTo(100));
       verify(handler.next(response)).called(1);
     });
 
-    test('onError should log error details and call reject', () {
+    test(
+        'onError should log error details, calculate duration, and call reject',
+        () {
       final options = RequestOptions(
         method: 'PUT',
         path: 'https://example.com',
+        extra: {'start_time': DateTime.now().millisecondsSinceEpoch - 50},
       );
       final dioError = DioException(
         requestOptions: options,
@@ -54,8 +67,23 @@ void utilsNetwork() {
 
       LoggerNetworkSettings.onError(dioError, handler, mockLogRepository);
 
-      verify(mockLogRepository.addLog(any)).called(1);
+      final captured = verify(mockLogRepository.addLog(captureAny)).captured;
+      final logModel = captured.first as LogRepositoryModel;
+      expect(logModel.responseTime, greaterThanOrEqualTo(50));
       verify(handler.reject(dioError)).called(1);
+    });
+
+    test('should NOT log when shouldLogNotifier is false', () {
+      DioLogger.shouldLogNotifier.value = false;
+
+      final options = RequestOptions(path: 'https://example.com');
+      final handler = MockRequestInterceptorHandler();
+      LoggerNetworkSettings.onRequest(options, handler, mockLogRepository);
+
+      verifyNever(mockLogRepository.addLog(any));
+      verify(handler.next(options)).called(1);
+
+      DioLogger.shouldLogNotifier.value = true;
     });
 
     test('isSucces should return true for 2xx status codes', () {
