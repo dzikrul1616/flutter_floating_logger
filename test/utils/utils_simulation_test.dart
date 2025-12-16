@@ -73,5 +73,30 @@ void main() {
         expect(e.response?.statusCode, 500);
       }
     });
+
+    test('should throw DioException for Timeout after delay', () {
+      fakeAsync((async) {
+        NetworkSimulator.instance.setSimulation(NetworkSimulation.timeout);
+        final options = RequestOptions(path: '/test');
+
+        bool completed = false;
+        DioException? caughtException;
+
+        NetworkSimulator.instance.simulate(options).catchError((e) {
+          caughtException = e as DioException;
+          completed = true;
+        });
+
+        // Should wait 2 seconds before throwing
+        async.elapse(const Duration(seconds: 1));
+        expect(completed, isFalse);
+
+        async.elapse(const Duration(seconds: 1, milliseconds: 100));
+        expect(completed, isTrue);
+        expect(caughtException, isNotNull);
+        expect(caughtException!.type, DioExceptionType.connectionTimeout);
+        expect(caughtException!.message, 'Connection Timeout (Simulated)');
+      });
+    });
   });
 }

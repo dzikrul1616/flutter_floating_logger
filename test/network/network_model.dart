@@ -127,5 +127,20 @@ void networkModel() {
       expect(repository.logsNotifier.value.first.message, 'Log 34');
       expect(repository.logsNotifier.value.last.message, 'Log 5');
     });
+
+    test('addLog should respect custom maxLogSize', () {
+      final repository = LogRepository(maxLogSize: 10);
+
+      for (int i = 0; i < 15; i++) {
+        repository.addLog(LogRepositoryModel(
+          path: '/api/$i',
+          message: 'Log $i',
+        ));
+      }
+
+      expect(repository.logsNotifier.value.length, 10);
+      expect(repository.logsNotifier.value.first.message, 'Log 14');
+      expect(repository.logsNotifier.value.last.message, 'Log 5');
+    });
   });
 }

@@ -6,12 +6,16 @@ class FloatingLoggerModalBottomWidget extends StatefulWidget {
   const FloatingLoggerModalBottomWidget({
     super.key,
     this.widgetItemBuilder,
+    this.isSimulationActive = true,
   });
 
   final Widget Function(
     int index,
     List<LogRepositoryModel> data,
   )? widgetItemBuilder;
+
+  /// Controls whether the network simulation control is shown (default: true).
+  final bool isSimulationActive;
 
   @override
   State<FloatingLoggerModalBottomWidget> createState() =>
@@ -237,7 +241,7 @@ class FloatingLoggerModalBottomWidgetState
             ),
             Row(
               children: [
-                _buildSpeedControl(),
+                if (widget.isSimulationActive) _buildSpeedControl(),
                 _buildClearButton(),
               ],
             ),
@@ -375,12 +379,12 @@ class FloatingLoggerModalBottomWidgetState
               border: Border.all(
                 width: 1.0,
                 color: simulation == NetworkSimulation.normal
-                    ? Colors.grey
+                    ? Colors.green
                     : Colors.orange,
               ),
               borderRadius: BorderRadius.circular(8),
               color: simulation == NetworkSimulation.normal
-                  ? Colors.transparent
+                  ? const Color.fromARGB(45, 125, 255, 129)
                   : const Color.fromARGB(31, 255, 153, 0),
             ),
             child: Row(
@@ -389,7 +393,7 @@ class FloatingLoggerModalBottomWidgetState
                   _getSimulationIcon(simulation),
                   size: 16,
                   color: simulation == NetworkSimulation.normal
-                      ? Colors.grey
+                      ? Colors.green
                       : Colors.orange,
                 ),
                 if (simulation != NetworkSimulation.normal) ...[
