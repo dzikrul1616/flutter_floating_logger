@@ -112,8 +112,9 @@ class DioLogger with DioMixin implements Dio {
   /// - [isWeb]: If true, returns the default [HttpClientAdapter] (for web).
   /// - If false, returns [IOHttpClientAdapter] with SSL verification disabled.
   @foundation.visibleForTesting
-  static HttpClientAdapter createAdapter({bool isWeb = foundation.kIsWeb}) {
-    if (isWeb) {
+  static HttpClientAdapter createAdapter({bool? isWeb}) {
+    final useWeb = isWeb ?? foundation.kIsWeb;
+    if (useWeb) {
       // Web-specific adapter (ensure this is used for Web)
       return HttpClientAdapter();
     } else {
