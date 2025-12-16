@@ -114,7 +114,7 @@ void widgetFloatingLoggerShowModalTest() {
         ),
       );
 
-      await tester.tap(find.text('Clear'));
+      await tester.tap(find.byIcon(Icons.delete_outline));
       await tester.pumpAndSettle();
     });
 
@@ -276,6 +276,36 @@ void widgetFloatingLoggerShowModalTest() {
 
       expect(find.text('/api/test'), findsOneWidget);
       expect(find.text('/api/another'), findsNothing);
+    });
+
+    testWidgets('Speed Control interaction', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerModalBottomWidget(),
+          ),
+        ),
+      );
+
+      // Initial state: Normal (Icons.speed, grey)
+      expect(find.byIcon(Icons.speed), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.speed));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Network Simulation'), findsOneWidget);
+      expect(find.text('Slow 3G'),
+          findsWidgets); // Multiples? List tile title + button? Just one.
+
+      // Select Slow 3G
+      await tester.tap(find.text('Slow 3G'));
+      await tester.pumpAndSettle();
+
+      // Verify closing
+      expect(find.text('Network Simulation'), findsNothing);
+
+      // Verify UI updated to network_check icon (Slow 3G)
+      expect(find.byIcon(Icons.network_check), findsOneWidget);
     });
   });
 }

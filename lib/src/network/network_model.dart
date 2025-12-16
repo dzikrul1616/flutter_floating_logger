@@ -20,8 +20,13 @@ class LogRepository {
 
   /// Adds a new log to the list and notifies listeners.
   void addLog(LogRepositoryModel log) {
-    _logsNotifier.value = [log, ..._logsNotifier.value];
-    // Adds the new log at the beginning of the list.
+    const int maxLogSize = 30;
+    final currentLogs = _logsNotifier.value;
+    if (currentLogs.length >= maxLogSize) {
+      _logsNotifier.value = [log, ...currentLogs.take(maxLogSize - 1)];
+    } else {
+      _logsNotifier.value = [log, ...currentLogs];
+    }
   }
 
   /// Provides access to the `ValueNotifier` for logs.

@@ -1,3 +1,7 @@
+## [0.1.6] - Network Simulation & Dependency Updates
+* [new] Network Speed Throttling (Slow 3G, Offline Mode, Socket/Server Exceptions)
+* [optimization] Log entry limit (30 items)
+
 ## [0.1.5] - Runtime and fixing formdata request
 * [fix] add runtime to logger
 * [fix] fixing formdata request
