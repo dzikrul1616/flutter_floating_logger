@@ -12,6 +12,8 @@ class FloatingLoggerControl extends StatefulWidget {
     this.getPreference,
     this.widgetItemBuilder,
     this.style,
+    this.maxLogSize = 30,
+    this.isSimulationActive = true,
   });
 
   /// The main child widget (usually the app content).
@@ -31,6 +33,12 @@ class FloatingLoggerControl extends StatefulWidget {
     int index,
     List<LogRepositoryModel> data,
   )? widgetItemBuilder;
+
+  /// Maximum number of logs to store (default: 30).
+  final int maxLogSize;
+
+  /// Controls whether the network simulation control is shown (default: true).
+  final bool isSimulationActive;
 
   @override
   State<FloatingLoggerControl> createState() => _FloatingLoggerControlState();
@@ -58,6 +66,8 @@ class _FloatingLoggerControlState extends State<FloatingLoggerControl> {
   @override
   void initState() {
     super.initState();
+    // Configure max log size
+    DioLogger.instance.logs.maxLogSize = widget.maxLogSize;
     _getShowPreference();
   }
 
@@ -132,6 +142,7 @@ class _FloatingLoggerControlState extends State<FloatingLoggerControl> {
       builder: (BuildContext context) {
         return FloatingLoggerModalBottomWidget(
           widgetItemBuilder: widget.widgetItemBuilder,
+          isSimulationActive: widget.isSimulationActive,
         );
       },
     );

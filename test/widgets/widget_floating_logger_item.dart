@@ -481,14 +481,16 @@ void widgetFloatingLoggerItemTest() {
       expect(find.byType(ElevatedButton), findsOneWidget);
     });
 
-    testWidgets('Test GestureDetector onTap in _codeFieldCopy',
+    testWidgets('Should handle clipboard copy successfully',
         (WidgetTester tester) async {
+      final logData = LogRepositoryModel(
+        curl: 'Example cURL data',
+      );
+
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
           body: FloatingLoggerItem(
-            data: LogRepositoryModel(
-              curl: 'Example cURL data',
-            ),
+            data: logData,
             index: 0,
           ),
         ),
@@ -498,20 +500,70 @@ void widgetFloatingLoggerItemTest() {
       await tester.pumpAndSettle();
 
       final copyIconFinder = find.byIcon(Icons.copy);
-      expect(copyIconFinder, findsAtLeast(1));
+      expect(copyIconFinder, findsAtLeastNWidgets(1));
+
+      final List<MethodCall> log = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall methodCall) async {
+          log.add(methodCall);
+          if (methodCall.method == 'Clipboard.setData') {
+            return null;
+          }
+          return null;
+        },
+      );
 
       await tester.tap(copyIconFinder.last);
-
-      await tester.tap(copyIconFinder.last);
-
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 10));
+      await tester.pump(const Duration(milliseconds: 100));
 
-      if (find.text('Successfully copied cURL').evaluate().isNotEmpty) {
-        expect(find.text('Successfully copied cURL'), findsOneWidget);
-      }
+      expect(log, isNotEmpty);
+      expect(log.last.method, 'Clipboard.setData');
+      expect((log.last.arguments as Map)['text'], 'Example cURL data');
 
+      expect(find.text('Successfully copied cURL'), findsOneWidget);
+
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+    });
+
+    testWidgets('Should handle clipboard copy when unmounted',
+        (WidgetTester tester) async {
+      final logData = LogRepositoryModel(
+        curl: 'Example cURL data',
+      );
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: FloatingLoggerItem(
+            data: logData,
+            index: 0,
+          ),
+        ),
+      ));
+
+      await tester.tap(find.byType(GestureDetector).first);
       await tester.pumpAndSettle();
+
+      final copyIconFinder = find.byIcon(Icons.copy);
+
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall methodCall) async {
+          if (methodCall.method == 'Clipboard.setData') {
+            await Future.delayed(const Duration(milliseconds: 50));
+            return null;
+          }
+          return null;
+        },
+      );
+
+      await tester.tap(copyIconFinder.last);
+      await tester.pump();
+
+      await tester.pumpWidget(Container());
+
+      await tester.pump(const Duration(milliseconds: 100));
     });
 
     testWidgets('Should handle null header gracefully',

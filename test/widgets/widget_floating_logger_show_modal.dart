@@ -114,7 +114,7 @@ void widgetFloatingLoggerShowModalTest() {
         ),
       );
 
-      await tester.tap(find.text('Clear'));
+      await tester.tap(find.byIcon(Icons.delete_outline));
       await tester.pumpAndSettle();
     });
 
@@ -276,6 +276,58 @@ void widgetFloatingLoggerShowModalTest() {
 
       expect(find.text('/api/test'), findsOneWidget);
       expect(find.text('/api/another'), findsNothing);
+    });
+
+    testWidgets('Speed Control interaction', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerModalBottomWidget(),
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.speed), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.speed));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Network Simulation'), findsOneWidget);
+      expect(find.text('Slow 3G'), findsWidgets);
+
+      await tester.tap(find.text('Slow 3G'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Network Simulation'), findsNothing);
+
+      expect(find.byIcon(Icons.network_check), findsOneWidget);
+    });
+
+    testWidgets('Should pass isSimulationActive parameter correctly',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: MediaQuery(
+              data: const MediaQueryData(size: Size(800, 800)),
+              child: const FloatingLoggerModalBottomWidget(
+                isSimulationActive: false,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      final widget = tester.widget<FloatingLoggerModalBottomWidget>(
+        find.byType(FloatingLoggerModalBottomWidget),
+      );
+
+      expect(widget.isSimulationActive, false);
+
+      // Clean up
+      DioLogger.instance.logs.clearLogs();
     });
   });
 }

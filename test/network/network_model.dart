@@ -111,4 +111,36 @@ void networkModel() {
           "REQUEST, GET, 200 OK, Content-Type: application/json, id=1, {\"name\": \"John\"}, {\"id\": 1, \"name\": \"John\"}, null, 150, Request successful, curl -X GET https://example.com");
     });
   });
+
+  group('LogRepository', () {
+    test('addLog should limit logs to 30 and keep newest', () {
+      final repository = LogRepository();
+
+      for (int i = 0; i < 35; i++) {
+        repository.addLog(LogRepositoryModel(
+          path: '/api/$i',
+          message: 'Log $i',
+        ));
+      }
+
+      expect(repository.logsNotifier.value.length, 30);
+      expect(repository.logsNotifier.value.first.message, 'Log 34');
+      expect(repository.logsNotifier.value.last.message, 'Log 5');
+    });
+
+    test('addLog should respect custom maxLogSize', () {
+      final repository = LogRepository(maxLogSize: 10);
+
+      for (int i = 0; i < 15; i++) {
+        repository.addLog(LogRepositoryModel(
+          path: '/api/$i',
+          message: 'Log $i',
+        ));
+      }
+
+      expect(repository.logsNotifier.value.length, 10);
+      expect(repository.logsNotifier.value.first.message, 'Log 14');
+      expect(repository.logsNotifier.value.last.message, 'Log 5');
+    });
+  });
 }

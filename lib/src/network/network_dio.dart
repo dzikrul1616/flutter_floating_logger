@@ -77,11 +77,14 @@ class DioLogger with DioMixin implements Dio {
   void addDefaultInterceptors() {
     interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) => LoggerNetworkSettings.onRequest(
-          options,
-          handler,
-          logRepository,
-        ),
+        onRequest: (options, handler) async {
+          await NetworkSimulator.instance.simulate(options);
+          LoggerNetworkSettings.onRequest(
+            options,
+            handler,
+            logRepository,
+          );
+        },
         onResponse: (response, handler) => LoggerNetworkSettings.onResponse(
           response,
           handler,

@@ -4,3 +4,4 @@ export 'utils_style.dart';
 export 'utils_format.dart';
 export 'utils_package.dart';
 export 'utils_network.dart';
+export 'utils_simulation.dart';

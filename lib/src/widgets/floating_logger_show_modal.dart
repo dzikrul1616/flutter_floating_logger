@@ -6,12 +6,16 @@ class FloatingLoggerModalBottomWidget extends StatefulWidget {
   const FloatingLoggerModalBottomWidget({
     super.key,
     this.widgetItemBuilder,
+    this.isSimulationActive = true,
   });
 
   final Widget Function(
     int index,
     List<LogRepositoryModel> data,
   )? widgetItemBuilder;
+
+  /// Controls whether the network simulation control is shown (default: true).
+  final bool isSimulationActive;
 
   @override
   State<FloatingLoggerModalBottomWidget> createState() =>
@@ -145,93 +149,102 @@ class FloatingLoggerModalBottomWidgetState
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.filter_list,
-                    color: Colors.black54,
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.filter_list,
+                      color: Colors.black54,
+                    ),
+                    onPressed: () => _showFilterDialog(logs),
                   ),
-                  onPressed: () => _showFilterDialog(logs),
-                ),
-                ValueListenableBuilder(
-                  valueListenable: searchQuery,
-                  builder: (context, query, _) {
-                    return AnimatedSwitcher(
-                      duration: Duration(milliseconds: 300),
-                      child: isSearchActive
-                          ? Row(
-                              children: [
-                                SizedBox(
-                                  width: screenWidth < 550 && screenWidth >= 350
-                                      ? 200
-                                      : screenWidth < 350
-                                          ? 100
-                                          : 400,
-                                  child: TextField(
-                                    controller: searchController,
-                                    onChanged: (value) =>
-                                        searchQuery.value = value,
-                                    decoration: InputDecoration(
-                                        hintText: "Search logs...",
-                                        suffixIcon: IconButton(
-                                          icon: Icon(Icons.close,
-                                              color: Colors.black54),
-                                          onPressed: toggleSearch,
-                                        ),
-                                        focusedBorder: outlineInputBorder,
-                                        border: outlineInputBorder),
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Row(
-                              children: [
-                                IconButton(
-                                  key: ValueKey("searchIcon"),
-                                  icon: Icon(
-                                    Icons.search,
-                                    color: Colors.black54,
-                                  ),
-                                  onPressed: toggleSearch,
-                                ),
-                                filterLenght == 0
-                                    ? const SizedBox.shrink()
-                                    : Padding(
-                                        padding: const EdgeInsets.only(
-                                          left: 8,
-                                        ),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            color: Colors.blue[300],
+                  ValueListenableBuilder(
+                    valueListenable: searchQuery,
+                    builder: (context, query, _) {
+                      return AnimatedSwitcher(
+                        duration: Duration(milliseconds: 300),
+                        child: isSearchActive
+                            ? Row(
+                                children: [
+                                  SizedBox(
+                                    width:
+                                        screenWidth < 550 && screenWidth >= 350
+                                            ? 200
+                                            : screenWidth < 350
+                                                ? 100
+                                                : 400,
+                                    child: TextField(
+                                      controller: searchController,
+                                      onChanged: (value) =>
+                                          searchQuery.value = value,
+                                      decoration: InputDecoration(
+                                          hintText: "Search logs...",
+                                          suffixIcon: IconButton(
+                                            icon: Icon(Icons.close,
+                                                color: Colors.black54),
+                                            onPressed: toggleSearch,
                                           ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 4,
-                                              horizontal: 8,
+                                          focusedBorder: outlineInputBorder,
+                                          border: outlineInputBorder),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  IconButton(
+                                    key: ValueKey("searchIcon"),
+                                    icon: Icon(
+                                      Icons.search,
+                                      color: Colors.black54,
+                                    ),
+                                    onPressed: toggleSearch,
+                                  ),
+                                  filterLenght == 0
+                                      ? const SizedBox.shrink()
+                                      : Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 8,
+                                          ),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              color: Colors.blue[300],
                                             ),
-                                            child: Text(
-                                              'Total Data : $filterLenght',
-                                              style: GoogleFonts.inter(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.normal,
-                                                color: Colors.white,
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                vertical: 4,
+                                                horizontal: 8,
+                                              ),
+                                              child: Text(
+                                                'Total Data : $filterLenght',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.normal,
+                                                  color: Colors.white,
+                                                ),
                                               ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                              ],
-                            ),
-                    );
-                  },
-                ),
+                                ],
+                              ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              children: [
+                if (widget.isSimulationActive) _buildSpeedControl(),
+                _buildClearButton(),
               ],
             ),
-            _buildClearButton(),
           ],
         ),
       ],
@@ -353,6 +366,101 @@ class FloatingLoggerModalBottomWidgetState
     );
   }
 
+  Widget _buildSpeedControl() {
+    return ValueListenableBuilder<NetworkSimulation>(
+      valueListenable: NetworkSimulator.instance.simulationNotifier,
+      builder: (context, simulation, _) {
+        return GestureDetector(
+          onTap: () => _showSpeedDialog(),
+          child: Container(
+            margin: const EdgeInsets.only(left: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              border: Border.all(
+                width: 1.0,
+                color: simulation == NetworkSimulation.normal
+                    ? Colors.green
+                    : Colors.orange,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              color: simulation == NetworkSimulation.normal
+                  ? const Color.fromARGB(45, 125, 255, 129)
+                  : const Color.fromARGB(31, 255, 153, 0),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  _getSimulationIcon(simulation),
+                  size: 16,
+                  color: simulation == NetworkSimulation.normal
+                      ? Colors.green
+                      : Colors.orange,
+                ),
+                if (simulation != NetworkSimulation.normal) ...[
+                  const SizedBox(width: 4),
+                  Text(
+                    simulation.label,
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  IconData _getSimulationIcon(NetworkSimulation simulation) {
+    switch (simulation) {
+      case NetworkSimulation.normal:
+        return Icons.speed;
+      case NetworkSimulation.slow3g:
+        return Icons.network_check;
+      case NetworkSimulation.offline:
+        return Icons.wifi_off;
+      case NetworkSimulation.socketError:
+        return Icons.error_outline;
+      case NetworkSimulation.serverError:
+        return Icons.cloud_off;
+      case NetworkSimulation.timeout:
+        return Icons.timer_off;
+    }
+  }
+
+  void _showSpeedDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Network Simulation',
+          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: NetworkSimulation.values.map((simulation) {
+            return ListTile(
+              title: Text(simulation.label,
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
+              leading: Icon(
+                _getSimulationIcon(simulation),
+                color: Colors.blue,
+              ),
+              onTap: () {
+                NetworkSimulator.instance.setSimulation(simulation);
+                Navigator.pop(context);
+              },
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
   Widget _buildClearButton() {
     return Padding(
       padding: const EdgeInsets.only(left: 6),
@@ -362,25 +470,18 @@ class FloatingLoggerModalBottomWidgetState
           setState(() {});
         },
         child: Container(
-          width: 80,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             border: Border.all(
               width: 1.0,
               color: Colors.red,
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Center(
-              child: Text(
-                "Clear",
-                style: GoogleFonts.inter(
-                  fontSize: 10.0,
-                  color: Colors.red,
-                ),
-              ),
-            ),
+          child: const Icon(
+            Icons.delete_outline,
+            size: 16,
+            color: Colors.red,
           ),
         ),
       ),

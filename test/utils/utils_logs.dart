@@ -150,8 +150,6 @@ void utilsLogs() {
       final captured = verify(mockLogRepository.addLog(captureAny)).captured;
       final logModel = captured.first as LogRepositoryModel;
 
-      // Verify parsing
-      // data field in model is String (json string)
       final parsedData = logModel.data as String;
       expect(parsedData.contains('"name": "John"'), isTrue);
       expect(parsedData.contains('"filename": "test.txt"'), isTrue);

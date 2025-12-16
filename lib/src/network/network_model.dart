@@ -14,14 +14,23 @@ import 'package:floating_logger/floating_logger.dart'
 /// can then be accessed by FloatingLoggerItem or other UI components for
 /// debugging or monitoring network activity.
 class LogRepository {
+  /// Maximum number of logs to store (default: 30)
+  int maxLogSize;
+
+  LogRepository({this.maxLogSize = 30});
+
   /// A `ValueNotifier` that tracks a list of logs, allowing real-time updates to any listeners.
   final ValueNotifier<List<LogRepositoryModel>> _logsNotifier =
       ValueNotifier<List<LogRepositoryModel>>([]);
 
   /// Adds a new log to the list and notifies listeners.
   void addLog(LogRepositoryModel log) {
-    _logsNotifier.value = [log, ..._logsNotifier.value];
-    // Adds the new log at the beginning of the list.
+    final currentLogs = _logsNotifier.value;
+    if (currentLogs.length >= maxLogSize) {
+      _logsNotifier.value = [log, ...currentLogs.take(maxLogSize - 1)];
+    } else {
+      _logsNotifier.value = [log, ...currentLogs];
+    }
   }
 
   /// Provides access to the `ValueNotifier` for logs.

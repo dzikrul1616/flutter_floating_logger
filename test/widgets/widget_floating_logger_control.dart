@@ -194,4 +194,22 @@ void widgetFloatingLoggerControlTest() {
     expect(icon.icon, Icons.code_rounded);
     expect(icon.color, Colors.white);
   });
+
+  testWidgets('FloatingLoggerControl should configure maxLogSize',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: FloatingLoggerControl(
+            maxLogSize: 50,
+            child: const SizedBox(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(DioLogger.instance.logs.maxLogSize, 50);
+  });
 }

@@ -21,6 +21,7 @@ void networkDio() {
     late MockResponseInterceptorHandler mockResponseHandler;
     late MockErrorInterceptorHandler mockErrorHandler;
     setUp(() {
+      NetworkSimulator.instance.setSimulation(NetworkSimulation.normal);
       dioLogger = DioLogger.instance;
       mockDio = MockDioLogger();
       mockLogRepository = MockLogRepository();
@@ -192,7 +193,7 @@ void networkDio() {
 
     test(
         'Default interceptors should be added correctly and invoke LoggerNetworkSettings',
-        () {
+        () async {
       final dioInstance = DioLogger.instance;
       final wrapper = dioInstance.interceptors.firstWhere(
         (i) => i is InterceptorsWrapper,
@@ -204,7 +205,7 @@ void networkDio() {
 
       final options = RequestOptions(path: '/test_interceptor');
       final reqHandler = MockRequestInterceptorHandler();
-      wrapper.onRequest(options, reqHandler);
+      await (wrapper.onRequest as dynamic)(options, reqHandler);
 
       // Verify real repository updated
       expect(dioInstance.logs.logsNotifier.value.length, initialLogCount + 1);
