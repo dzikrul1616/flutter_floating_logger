@@ -89,8 +89,10 @@ class LoggerLogsData {
       'set-cookie',
       'x-powered-by'
     };
-    return headers
-      ..removeWhere((key, value) => hiddenKeys.contains(key.toLowerCase()));
+    final filteredHeaders = Map<String, dynamic>.from(headers);
+    filteredHeaders
+        .removeWhere((key, value) => hiddenKeys.contains(key.toLowerCase()));
+    return filteredHeaders;
   }
 
   // Helper method to retrieve queryparameter

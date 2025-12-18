@@ -70,7 +70,7 @@ void utilsNetwork() {
       final captured = verify(mockLogRepository.addLog(captureAny)).captured;
       final logModel = captured.first as LogRepositoryModel;
       expect(logModel.responseTime, greaterThanOrEqualTo(50));
-      verify(handler.reject(dioError)).called(1);
+      verify(handler.next(dioError)).called(1);
     });
 
     test('should NOT log when shouldLogNotifier is false', () {

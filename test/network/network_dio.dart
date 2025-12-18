@@ -133,7 +133,7 @@ void networkDio() {
 
     test('onError should call LoggerNetworkSettings.onError', () {
       when(mockDioException.requestOptions).thenReturn(mockRequestOptions);
-      when(mockErrorHandler.reject(mockDioException)).thenReturn(null);
+      when(mockErrorHandler.next(mockDioException)).thenReturn(null);
 
       LoggerNetworkSettings.onError(
         mockDioException,
@@ -142,7 +142,7 @@ void networkDio() {
       );
 
       verify(mockLogRepository.addLog(any)).called(1);
-      verify(mockErrorHandler.reject(mockDioException)).called(1);
+      verify(mockErrorHandler.next(mockDioException)).called(1);
     });
 
     test('should add a new log at the beginning of the list', () {
@@ -277,6 +277,24 @@ void networkDio() {
       wrapper.onError(mockErr, handler);
 
       expect(logoutTriggered, isTrue);
+    });
+
+    test('should reject request when NetworkSimulator throws', () async {
+      final dioInstance = DioLogger.instance;
+      final wrapper = dioInstance.interceptors.firstWhere(
+        (i) => i is InterceptorsWrapper,
+      ) as InterceptorsWrapper;
+
+      NetworkSimulator.instance.setSimulation(NetworkSimulation.offline);
+
+      final options = RequestOptions(path: '/offline_test');
+      final reqHandler = MockRequestInterceptorHandler();
+
+      await (wrapper.onRequest as dynamic)(options, reqHandler);
+
+      verify(reqHandler.reject(any)).called(1);
+
+      NetworkSimulator.instance.setSimulation(NetworkSimulation.normal);
     });
   });
 }

@@ -2,7 +2,7 @@ import 'package:floating_logger/floating_logger.dart';
 import 'pages/home_page.dart';
 import 'utils/route.dart';
 
-void main() {
+void main() async {
   /// Example to add List custom interceptor
   // DioLogger.instance.addInterceptor(
   //   InterceptorsWrapper(

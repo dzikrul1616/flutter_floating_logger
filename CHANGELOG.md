@@ -1,4 +1,5 @@
 ## [0.1.6] - Network Simulation & Dependency Updates
+* [fix] add interceptor on error
 * [new] network Speed Throttling (Slow 3G, Offline Mode, Socket/Server Exceptions)
 * [optimization] log entry limit (30 items)
 * [update] floating logger control show max log & network simulation
