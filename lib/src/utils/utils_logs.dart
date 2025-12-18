@@ -55,7 +55,15 @@ class LoggerLogsData {
   static Map<String, dynamic> _formDataToMap(FormData data) {
     final map = <String, dynamic>{};
     for (var entry in data.fields) {
-      map[entry.key] = entry.value;
+      if (map.containsKey(entry.key)) {
+        if (map[entry.key] is List) {
+          (map[entry.key] as List).add(entry.value);
+        } else {
+          map[entry.key] = [map[entry.key], entry.value];
+        }
+      } else {
+        map[entry.key] = entry.value;
+      }
     }
     for (var entry in data.files) {
       // Create a simplified representation for MultipartFile
@@ -89,8 +97,10 @@ class LoggerLogsData {
       'set-cookie',
       'x-powered-by'
     };
-    return headers
-      ..removeWhere((key, value) => hiddenKeys.contains(key.toLowerCase()));
+    final filteredHeaders = Map<String, dynamic>.from(headers);
+    filteredHeaders
+        .removeWhere((key, value) => hiddenKeys.contains(key.toLowerCase()));
+    return filteredHeaders;
   }
 
   // Helper method to retrieve queryparameter

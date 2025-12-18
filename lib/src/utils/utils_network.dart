@@ -48,7 +48,7 @@ class LoggerNetworkSettings {
     RequestInterceptorHandler handler,
     LogRepository logRepository,
   ) {
-    options.extra['start_time'] = DateTime.now().millisecondsSinceEpoch;
+    options.extra['start_time'] ??= DateTime.now().millisecondsSinceEpoch;
     final curlCommand = FormatLogger.generateCurlCommand(options);
     if (DioLogger.shouldLogNotifier.value) {
       LoggerLogsData.logMessage<RequestOptions>(
@@ -118,7 +118,7 @@ class LoggerNetworkSettings {
         duration: duration,
       );
     }
-    handler.reject(error);
+    handler.next(error);
   }
 
   static bool isSucces(

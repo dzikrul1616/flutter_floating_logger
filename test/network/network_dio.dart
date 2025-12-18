@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:dio/io.dart';
+import 'dart:collection';
 import 'package:floating_logger/src/network/network.dart';
 import 'package:floating_logger/src/utils/utils.dart';
 import '../test.dart';
@@ -133,7 +134,7 @@ void networkDio() {
 
     test('onError should call LoggerNetworkSettings.onError', () {
       when(mockDioException.requestOptions).thenReturn(mockRequestOptions);
-      when(mockErrorHandler.reject(mockDioException)).thenReturn(null);
+      when(mockErrorHandler.next(mockDioException)).thenReturn(null);
 
       LoggerNetworkSettings.onError(
         mockDioException,
@@ -142,7 +143,7 @@ void networkDio() {
       );
 
       verify(mockLogRepository.addLog(any)).called(1);
-      verify(mockErrorHandler.reject(mockDioException)).called(1);
+      verify(mockErrorHandler.next(mockDioException)).called(1);
     });
 
     test('should add a new log at the beginning of the list', () {
@@ -278,7 +279,57 @@ void networkDio() {
 
       expect(logoutTriggered, isTrue);
     });
+
+    test('should reject request when NetworkSimulator throws', () async {
+      final dioInstance = DioLogger.instance;
+      final wrapper = dioInstance.interceptors.firstWhere(
+        (i) => i is InterceptorsWrapper,
+      ) as InterceptorsWrapper;
+
+      NetworkSimulator.instance.setSimulation(NetworkSimulation.offline);
+
+      final options = RequestOptions(path: '/offline_test');
+      final reqHandler = MockRequestInterceptorHandler();
+
+      await (wrapper.onRequest as dynamic)(options, reqHandler);
+
+      verify(reqHandler.reject(any)).called(1);
+
+      NetworkSimulator.instance.setSimulation(NetworkSimulation.normal);
+    });
+
+    test(
+        'should reject request with generic error when simulation or logging fails',
+        () async {
+      final dioInstance = DioLogger.instance;
+      final wrapper = dioInstance.interceptors.firstWhere(
+        (i) => i is InterceptorsWrapper,
+      ) as InterceptorsWrapper;
+
+      final options = RequestOptions(path: '/error_test');
+      // Replace extra with a map that throws when accessed
+      options.extra = _ThrowingMap();
+
+      final reqHandler = MockRequestInterceptorHandler();
+
+      await (wrapper.onRequest as dynamic)(options, reqHandler);
+
+      verify(reqHandler.reject(any)).called(1);
+    });
   });
+}
+
+class _ThrowingMap extends MapBase<String, dynamic> {
+  @override
+  operator [](Object? key) => throw Exception('Generic error');
+  @override
+  void operator []=(String key, value) => throw Exception('Generic error');
+  @override
+  void clear() {}
+  @override
+  Iterable<String> get keys => [];
+  @override
+  dynamic remove(Object? key) => null;
 }
 
 class MockHttpClient extends Mock implements HttpClient {}

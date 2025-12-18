@@ -1,0 +1,29 @@
+# Exclude development-only folders
+.github/
+.vscode/
+.dart_tool/
+coverage/
+build/
+test/
+
+# Exclude large media
+images/preview.gif
+images/[GET]error_debug_api.png
+images/[GET]request_debug_api.png
+images/[GET]response_debug_api.png
+
+# platform folders in example
+example/ios/
+example/android/
+example/macos/
+example/windows/
+example/linux/
+example/web/
+
+# Exclude specific files
+pubspec.lock
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+.DS_Store
+*.log

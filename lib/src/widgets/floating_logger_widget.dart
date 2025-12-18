@@ -53,14 +53,30 @@ class _FloatingLoggerControlState extends State<FloatingLoggerControl> {
 
   /// Retrieves the stored visibility preference.
   Future<void> _getShowPreference() async {
-    bool data = true; // Default value if getPreference is null
-    if (widget.getPreference != null) {
-      data = await widget.getPreference!();
+    try {
+      bool data = true; // Default value if getPreference is null
+      if (widget.getPreference != null) {
+        // Add 5 second timeout to prevent hanging
+        data = await widget.getPreference!().timeout(
+          const Duration(seconds: 5),
+          onTimeout: () => true,
+        );
+      }
+      if (mounted) {
+        setState(() {
+          isShow = data;
+          DioLogger.shouldLogNotifier.value = data;
+        });
+      }
+    } catch (e) {
+      // Fallback to default value on error
+      if (mounted) {
+        setState(() {
+          isShow = true;
+          DioLogger.shouldLogNotifier.value = true;
+        });
+      }
     }
-    setState(() {
-      isShow = data;
-      DioLogger.shouldLogNotifier.value = data;
-    });
   }
 
   @override
@@ -69,6 +85,12 @@ class _FloatingLoggerControlState extends State<FloatingLoggerControl> {
     // Configure max log size
     DioLogger.instance.logs.maxLogSize = widget.maxLogSize;
     _getShowPreference();
+  }
+
+  @override
+  void dispose() {
+    // Clean up resources to prevent memory leaks
+    super.dispose();
   }
 
   @override
