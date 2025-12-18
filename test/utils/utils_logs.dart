@@ -156,5 +156,38 @@ void utilsLogs() {
       // We expect length to be present. length of 'file content' is 12 bytes.
       expect(parsedData.contains('"length": 12'), isTrue);
     });
+
+    test('should correctly parse FormData with multiple fields having same key',
+        () async {
+      final formData = FormData.fromMap({
+        'tags': ['flutter', 'dart', 'logger'],
+      });
+
+      // Manually add fields to ensure duplicate keys are tested
+      formData.fields.add(MapEntry('tags', 'awesome'));
+
+      final options = RequestOptions(
+        method: 'POST',
+        path: 'https://example.com/tags',
+        data: formData,
+      );
+
+      LoggerLogsData.logMessage(
+        options,
+        AnsiColor.green,
+        mockLogRepository,
+        curlCommand,
+      );
+
+      final captured = verify(mockLogRepository.addLog(captureAny)).captured;
+      final logModel = captured.first as LogRepositoryModel;
+      final parsedData = logModel.data as String;
+
+      expect(parsedData.contains('"tags"'), isTrue);
+      expect(parsedData.contains('"flutter"'), isTrue);
+      expect(parsedData.contains('"dart"'), isTrue);
+      expect(parsedData.contains('"logger"'), isTrue);
+      expect(parsedData.contains('"awesome"'), isTrue);
+    });
   });
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:dio/io.dart';
+import 'dart:collection';
 import 'package:floating_logger/src/network/network.dart';
 import 'package:floating_logger/src/utils/utils.dart';
 import '../test.dart';
@@ -296,7 +297,39 @@ void networkDio() {
 
       NetworkSimulator.instance.setSimulation(NetworkSimulation.normal);
     });
+
+    test(
+        'should reject request with generic error when simulation or logging fails',
+        () async {
+      final dioInstance = DioLogger.instance;
+      final wrapper = dioInstance.interceptors.firstWhere(
+        (i) => i is InterceptorsWrapper,
+      ) as InterceptorsWrapper;
+
+      final options = RequestOptions(path: '/error_test');
+      // Replace extra with a map that throws when accessed
+      options.extra = _ThrowingMap();
+
+      final reqHandler = MockRequestInterceptorHandler();
+
+      await (wrapper.onRequest as dynamic)(options, reqHandler);
+
+      verify(reqHandler.reject(any)).called(1);
+    });
   });
+}
+
+class _ThrowingMap extends MapBase<String, dynamic> {
+  @override
+  operator [](Object? key) => throw Exception('Generic error');
+  @override
+  void operator []=(String key, value) => throw Exception('Generic error');
+  @override
+  void clear() {}
+  @override
+  Iterable<String> get keys => [];
+  @override
+  dynamic remove(Object? key) => null;
 }
 
 class MockHttpClient extends Mock implements HttpClient {}

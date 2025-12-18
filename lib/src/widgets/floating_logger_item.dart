@@ -291,24 +291,26 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem> {
               ),
         param == null
             ? _empty
-            : _codeFieldCopy(
-                'Param',
-                param,
+            : _CollapsibleCodeField(
+                title: 'Param',
+                data: param,
               ),
         widget.data.data == "null"
             ? _empty
-            : _codeFieldCopy(
-                'Data',
-                widget.data.type == "REQUEST"
+            : _CollapsibleCodeField(
+                title: 'Data',
+                data: widget.data.type == "REQUEST"
                     ? ((widget.data.data ?? ""))
                     : (widget.data.responseData ?? "")),
         header == null
             ? _empty
-            : _codeFieldCopy(
-                'Header',
-                header,
+            : _CollapsibleCodeField(
+                title: 'Header',
+                data: header,
               ),
-        curl == null ? _empty : _codeFieldCopy('cURL', curl),
+        curl == null
+            ? _empty
+            : _CollapsibleCodeField(title: 'cURL', data: curl),
       ],
     );
   }
@@ -434,5 +436,117 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem> {
     } else {
       return "UNKNOWN";
     }
+  }
+}
+
+class _CollapsibleCodeField extends StatefulWidget {
+  final String title;
+  final String data;
+
+  const _CollapsibleCodeField({
+    required this.title,
+    required this.data,
+  });
+
+  @override
+  State<_CollapsibleCodeField> createState() => _CollapsibleCodeFieldState();
+}
+
+class _CollapsibleCodeFieldState extends State<_CollapsibleCodeField> {
+  bool _isExpanded = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Colors.grey[200],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _isExpanded = !_isExpanded;
+                        });
+                      },
+                      behavior: HitTestBehavior.opaque,
+                      child: Text(
+                        widget.title,
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isExpanded = !_isExpanded;
+                          });
+                        },
+                        child: Icon(
+                          _isExpanded
+                              ? Icons.arrow_drop_up
+                              : Icons.arrow_drop_down,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          Clipboard.setData(ClipboardData(text: widget.data))
+                              .then((_) {
+                            if (!mounted) return;
+                            LoggerToast.successToast(
+                              // ignore: use_build_context_synchronously
+                              context,
+                              "Successfully copied ${widget.title}",
+                            );
+                          });
+                        },
+                        child: Icon(
+                          Icons.copy,
+                          size: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                child: _isExpanded
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          widget.data,
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12,
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
