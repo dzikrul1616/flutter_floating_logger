@@ -28,6 +28,8 @@ class FloatingLoggerModalBottomWidgetState
   final ValueNotifier<String> searchQuery = ValueNotifier("");
   final ValueNotifier<Set<String>> activeFilters = ValueNotifier({});
   final TextEditingController searchController = TextEditingController();
+  final ScrollController scrollController = ScrollController();
+  final ValueNotifier<int> currentMatchIndex = ValueNotifier(0);
 
   void toggleFilter(String type) {
     activeFilters.value = {
@@ -43,6 +45,9 @@ class FloatingLoggerModalBottomWidgetState
 
   void toggleSearch() {
     if (!mounted) return;
+    if (isSearchActive) {
+      FocusScope.of(context).unfocus();
+    }
     setState(() {
       if (isSearchActive) {
         searchController.clear();
@@ -57,6 +62,8 @@ class FloatingLoggerModalBottomWidgetState
     activeFilters.dispose();
     searchQuery.dispose();
     searchController.dispose();
+    scrollController.dispose();
+    currentMatchIndex.dispose();
     super.dispose();
   }
 
@@ -90,9 +97,19 @@ class FloatingLoggerModalBottomWidgetState
                               .toSet();
                           final selectedMethods =
                               filterValue.difference(selectedTypes);
+                          final q = searchValue.toLowerCase();
                           final matchesSearch = log.path!
-                              .toLowerCase()
-                              .contains(searchValue.toLowerCase());
+                                  .toLowerCase()
+                                  .contains(q) ||
+                              (log.data?.toLowerCase().contains(q) ?? false) ||
+                              (log.responseData?.toLowerCase().contains(q) ??
+                                  false) ||
+                              (log.queryparameter?.toLowerCase().contains(q) ??
+                                  false) ||
+                              (log.header?.toLowerCase().contains(q) ??
+                                  false) ||
+                              (log.message?.toLowerCase().contains(q) ?? false);
+
                           final matchesFilter = filterValue.isEmpty ||
                               (selectedTypes.isNotEmpty &&
                                   selectedMethods.isEmpty &&
@@ -115,10 +132,71 @@ class FloatingLoggerModalBottomWidgetState
                               logs,
                               filteredLogs.length,
                             ),
+                            if (searchValue.isNotEmpty &&
+                                filteredLogs.isNotEmpty)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    ValueListenableBuilder(
+                                      valueListenable: currentMatchIndex,
+                                      builder: (context, matchIdx, _) {
+                                        return Text(
+                                          "${matchIdx + 1}/${filteredLogs.length} matches found",
+                                          style: GoogleFonts.inter(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.orange[800],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(width: 12),
+                                    _buildNavButton(
+                                      icon: Icons.keyboard_arrow_up,
+                                      onPressed: () {
+                                        if (filteredLogs.isEmpty) return;
+                                        if (currentMatchIndex.value > 0) {
+                                          currentMatchIndex.value--;
+                                        } else {
+                                          currentMatchIndex.value =
+                                              filteredLogs.length - 1;
+                                        }
+                                        _scrollToMatch();
+                                      },
+                                    ),
+                                    const SizedBox(width: 4),
+                                    _buildNavButton(
+                                      icon: Icons.keyboard_arrow_down,
+                                      onPressed: () {
+                                        if (filteredLogs.isEmpty) return;
+                                        if (currentMatchIndex.value <
+                                            filteredLogs.length - 1) {
+                                          currentMatchIndex.value++;
+                                        } else {
+                                          currentMatchIndex.value = 0;
+                                        }
+                                        _scrollToMatch();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
                             const SizedBox(height: 10.0),
-                            PagesFloatingLogger(
-                              logsFiltered: filteredLogs,
-                              widgetItemBuilder: widget.widgetItemBuilder,
+                            ValueListenableBuilder(
+                              valueListenable: currentMatchIndex,
+                              builder: (context, activeIdx, _) {
+                                return PagesFloatingLogger(
+                                  logsFiltered: filteredLogs,
+                                  widgetItemBuilder: widget.widgetItemBuilder,
+                                  searchQuery: searchValue,
+                                  activeMatchIndex:
+                                      searchValue.isEmpty ? -1 : activeIdx,
+                                  scrollController: scrollController,
+                                );
+                              },
                             ),
                           ],
                         );
@@ -134,14 +212,56 @@ class FloatingLoggerModalBottomWidgetState
     );
   }
 
+  Widget _buildNavButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.orange.withOpacity(0.8), width: 1.5),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orange.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: onPressed,
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: Icon(icon, size: 24, color: Colors.orange[800]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _scrollToMatch() {
+    final index = currentMatchIndex.value;
+    if (scrollController.hasClients) {
+      scrollController.animateTo(
+        index *
+            100.0, // Refined estimation of item height during collapsed transition
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
   Widget _buildHeader(
     List<LogRepositoryModel> logs,
     int filterLenght,
   ) {
-    final screenWidth = MediaQuery.of(context).size.width;
     var outlineInputBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: Colors.black38),
+      borderSide: const BorderSide(color: Colors.black38),
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,94 +269,107 @@ class FloatingLoggerModalBottomWidgetState
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            IconButton(
+              icon: const Icon(
+                Icons.filter_list,
+                color: Colors.black54,
+              ),
+              onPressed: () => _showFilterDialog(logs),
+            ),
             Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.filter_list,
-                      color: Colors.black54,
-                    ),
-                    onPressed: () => _showFilterDialog(logs),
-                  ),
-                  ValueListenableBuilder(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return ValueListenableBuilder(
                     valueListenable: searchQuery,
                     builder: (context, query, _) {
                       return AnimatedSwitcher(
-                        duration: Duration(milliseconds: 300),
+                        duration: const Duration(milliseconds: 300),
                         child: isSearchActive
-                            ? Row(
-                                children: [
-                                  SizedBox(
-                                    width:
-                                        screenWidth < 550 && screenWidth >= 350
-                                            ? 200
-                                            : screenWidth < 350
-                                                ? 100
-                                                : 400,
-                                    child: TextField(
-                                      controller: searchController,
-                                      onChanged: (value) =>
-                                          searchQuery.value = value,
-                                      decoration: InputDecoration(
-                                          hintText: "Search logs...",
-                                          suffixIcon: IconButton(
-                                            icon: Icon(Icons.close,
-                                                color: Colors.black54),
-                                            onPressed: toggleSearch,
-                                          ),
-                                          focusedBorder: outlineInputBorder,
-                                          border: outlineInputBorder),
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Row(
-                                children: [
-                                  IconButton(
-                                    key: ValueKey("searchIcon"),
-                                    icon: Icon(
-                                      Icons.search,
-                                      color: Colors.black54,
-                                    ),
-                                    onPressed: toggleSearch,
-                                  ),
-                                  filterLenght == 0
-                                      ? const SizedBox.shrink()
-                                      : Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 8,
-                                          ),
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              color: Colors.blue[300],
+                            ? SizedBox(
+                                key: const ValueKey("searchFieldBox"),
+                                width: constraints.maxWidth,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: TextField(
+                                          controller: searchController,
+                                          onChanged: (value) {
+                                            searchQuery.value = value;
+                                            currentMatchIndex.value = 0;
+                                          },
+                                          decoration: InputDecoration(
+                                            isDense: true,
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 12),
+                                            hintText: "Search logs...",
+                                            hintStyle:
+                                                GoogleFonts.inter(fontSize: 13),
+                                            suffixIcon: IconButton(
+                                              padding: EdgeInsets.zero,
+                                              icon: const Icon(Icons.close,
+                                                  size: 20,
+                                                  color: Colors.black54),
+                                              onPressed: toggleSearch,
                                             ),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                vertical: 4,
-                                                horizontal: 8,
-                                              ),
-                                              child: Text(
-                                                'Total Data : $filterLenght',
-                                                style: GoogleFonts.inter(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.normal,
-                                                  color: Colors.white,
-                                                ),
+                                            focusedBorder: outlineInputBorder,
+                                            border: outlineInputBorder,
+                                          ),
+                                          style:
+                                              GoogleFonts.inter(fontSize: 13),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : SizedBox(
+                                key: const ValueKey("searchIconBox"),
+                                width: constraints.maxWidth,
+                                child: Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.search,
+                                        color: Colors.black54,
+                                      ),
+                                      onPressed: toggleSearch,
+                                    ),
+                                    if (filterLenght > 0)
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 8),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            color: Colors.blue[300],
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 4,
+                                              horizontal: 8,
+                                            ),
+                                            child: Text(
+                                              'Total Data : $filterLenght',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.normal,
+                                                color: Colors.white,
                                               ),
                                             ),
                                           ),
                                         ),
-                                ],
+                                      ),
+                                  ],
+                                ),
                               ),
                       );
                     },
-                  ),
-                ],
+                  );
+                },
               ),
             ),
             Row(
@@ -257,7 +390,7 @@ class FloatingLoggerModalBottomWidgetState
       FilterLabelModel(title: 'RESPONSE', color: Colors.blue),
       FilterLabelModel(title: 'ERROR', color: Colors.red),
       FilterLabelModel(title: 'GET', color: Colors.green),
-      FilterLabelModel(title: 'POST', color: Color(0xffFFB700)),
+      FilterLabelModel(title: 'POST', color: const Color(0xffFFB700)),
       FilterLabelModel(title: 'PUT', color: Colors.blue),
       FilterLabelModel(title: 'PATCH', color: Colors.purpleAccent),
       FilterLabelModel(title: 'OPTIONS', color: Colors.purple),

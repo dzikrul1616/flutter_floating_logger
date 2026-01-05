@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
+
 import 'package:floating_logger/floating_logger.dart';
 
 /// A helper class to format logs, specifically for generating curl commands
@@ -27,13 +29,22 @@ class FormatLogger {
     // Add URL
     buffer.write('"${options.uri.toString()}"');
 
-    // Handle request body for non-GET requests
-    if (options.method != 'GET' && options.data != null) {
+    // Handle request body (for all methods if data exists)
+    if (options.data != null) {
       String body;
 
       // If data is a Map, encode it into JSON
       if (options.data is Map) {
         body = jsonEncode(options.data);
+      } else if (options.data is FormData) {
+        final formData = options.data as FormData;
+        for (var field in formData.fields) {
+          buffer.write(' -F "${field.key}=${field.value}"');
+        }
+        for (var file in formData.files) {
+          buffer.write(' -F "${file.key}=@${file.value.filename}"');
+        }
+        return buffer.toString();
       } else {
         body = options.data.toString();
       }

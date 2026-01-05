@@ -86,5 +86,26 @@ void utilsFormat() {
 
       expect(result, invalidJsonString);
     });
+    test('generateCurlCommand should handle FormData correctly', () {
+      final formData = FormData.fromMap({
+        'name': 'John',
+        'age': 30,
+        'file': MultipartFile.fromString('file content', filename: 'test.txt'),
+      });
+
+      final options = RequestOptions(
+        method: 'POST',
+        path: 'https://example.com/upload',
+        data: formData,
+      );
+
+      final curlCommand = FormatLogger.generateCurlCommand(options);
+
+      expect(curlCommand, contains('-F "name=John"'));
+      expect(curlCommand, contains('-F "age=30"'));
+      expect(curlCommand, contains('-F "file=@test.txt"'));
+      expect(curlCommand, contains('curl -X POST'));
+      expect(curlCommand, contains('"https://example.com/upload"'));
+    });
   });
 }

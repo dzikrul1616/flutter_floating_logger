@@ -10,6 +10,9 @@ class PagesFloatingLogger extends StatelessWidget {
     super.key,
     this.widgetItemBuilder,
     this.logsFiltered,
+    this.searchQuery = "",
+    this.activeMatchIndex = -1,
+    this.scrollController,
   });
 
   /// A function that allows custom rendering of each log item.
@@ -18,6 +21,9 @@ class PagesFloatingLogger extends StatelessWidget {
     List<LogRepositoryModel> data,
   )? widgetItemBuilder;
   final List<LogRepositoryModel>? logsFiltered;
+  final String searchQuery;
+  final int activeMatchIndex;
+  final ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +73,7 @@ class PagesFloatingLogger extends StatelessWidget {
   /// Builds a list of log items when logs are available.
   Widget _buildLogList(List<LogRepositoryModel> logs) {
     return ListView.builder(
+      controller: scrollController,
       itemCount: logsFiltered!.length, // Number of logs to display
       shrinkWrap: true, // Allows flexible sizing
       physics: const ScrollPhysics(), // Standard scroll behavior
@@ -81,6 +88,8 @@ class PagesFloatingLogger extends StatelessWidget {
     return FloatingLoggerItem(
       index: index,
       data: logs[index],
+      searchQuery: searchQuery,
+      isActive: index == activeMatchIndex,
       child: widgetItemBuilder == null
           ? null // If no custom builder is provided, use default display
           : widgetItemBuilder!(index, logs),

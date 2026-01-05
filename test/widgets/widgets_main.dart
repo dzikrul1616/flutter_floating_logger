@@ -6,5 +6,10 @@ class WidgetsTestMain {
     widgetFloatingLoggerToastTest();
     widgetFloatingLoggerControlTest();
     widgetFloatingLoggerShowModalTest();
+    widgetFloatingLoggerJsonViewerTest();
   }
+}
+
+void main() {
+  WidgetsTestMain.main();
 }
