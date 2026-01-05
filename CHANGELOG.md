@@ -6,13 +6,10 @@
 * [fix] Resolved critical layout assertions (ParentDataWidget, unbounded constraints)
 * [fix] Resolved EditableTextState dispose assertions during search transitions
 * [update] Maintain 100% test coverage for search and navigation features
-
-## [2.0.0] - Improve Floating Logger
 * [update] improve ui floating logger
 * [new] add interceptor in Dio Logger
 * [new] add list interceptor in Dio Logger
 * [fix] curl formdata request
-* [update] update coverage code 100%
 
 ## [0.1.6] - Network Simulation & Dependency Updates
 * [fix] add interceptor on error

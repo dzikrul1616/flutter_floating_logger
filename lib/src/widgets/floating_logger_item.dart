@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:floating_logger/src/widgets/floating_logger_json_viewer.dart';
 import 'widgets.dart';
 
 import '../utils/utils.dart';
