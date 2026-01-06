@@ -17,7 +17,7 @@
   <a href="https://github.com/dzikrul1616/flutter_floating_logger/actions/workflows/testing.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/dzikrul1616/flutter_floating_logger/testing.yml?label=CI&style=social" alt="GitHub Actions" />
   </a>
-  <img src="https://img.shields.io/badge/pub-v0.1.6-orange.svg" alt="Version" />
+  <img src="https://img.shields.io/badge/pub-v2.1.0-orange.svg" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License" />
   <a href="https://github.com/dzikrul1616/flutter_floating_logger/issues">
     <img src="https://img.shields.io/badge/Issues-Open-brightgreen.svg" alt="Issues" />
@@ -35,12 +35,14 @@
 
 ## 📌 Features
 
-- 🎨 **Beautify Debugger Console** - Improved readability for logs
-- 📜 **Beautify JSON Response Item** - Better JSON formatting
-- 📋 **Copy cURL (Long Tap)** - Easily copy API requests
-- 🎈 **Floating Button (Flexible Logger)** - Moveable debugging widget
-- 🔄 **Preferences for Global Hide/Show** - Toggle visibility globally
-- 🔧 **Custom Item List** - Customize how log items are displayed
+- ✅ **Advanced Search & Deep Debugging** - Search log path, headers, body, response, and deep JSON content with highlighting and auto-expansion
+- ✅ **Dynamic Search Navigation** - Easily navigate through multiple search matches with up/down arrows
+- ✅ **Beautify JSON Response Item** - Collapsible and formatted JSON viewer
+- ✅ **Network Simulator** - Test Slow, Offline, and Normal network conditions
+- ✅ **Copy cURL (Long Tap)** - Easily copy API requests
+- ✅ **Floating Button (Flexible Logger)** - Moveable debugging widget
+- ✅ **Preferences for Global Hide/Show** - Toggle visibility globally
+- ✅ **Custom Item List** - Customize how log items are displayed
 
 ## Installation 🔧
 
@@ -101,7 +103,11 @@ return FloatingLoggerControl(
 );
 ```
 
-### 🌍 Logging API Calls with `DioLogger`
+### 🌍 Logging API Calls
+
+You can use `DioLogger` OR add `FloatingLoggerInterceptor` to your existing Dio instance.
+
+#### Option 1: Use `DioLogger` directly
 Replace your `Dio` instance with `DioLogger` to ensure API logs appear in the floating logger.
 
 ```dart
@@ -120,6 +126,14 @@ Future<void> fetchData() async {
     );
   }
 }
+```
+
+#### Option 2: Use `FloatingLoggerInterceptor`
+If you prefer using your own `Dio` instance, simply add the interceptor:
+
+```dart
+final dio = Dio();
+dio.interceptors.add(FloatingLoggerInterceptor());
 ```
 
 ---
@@ -294,6 +308,32 @@ DioLogger.instance.addListInterceptor(
 Explanation:
 - List of Interceptors: You can define multiple InterceptorsWrapper objects in a list. Each interceptor will be executed in the order they are added.
 - Order Matters: The first interceptor in the list will be executed first, followed by the next, and so on.
+
+---
+
+
+
+## ⚡ Network Simulator (Built-in)
+
+`floating_logger` comes with a powerful **Network Simulator** built right in! No extra packages needed. You can easily simulate different network conditions to test how your app handles:
+
+- **Normal**: Standard network behavior.
+- **Slow**: Simulates a 3-second delay (configurable).
+- **Offline**: Simulates no internet connection (throws error).
+
+### Usage
+
+```dart
+// Enable logs (default)
+NetworkSimulator.instance.setSimulation(NetworkSimulation.normal);
+
+// Simulate slow network (3s delay)
+NetworkSimulator.instance.setSimulation(NetworkSimulation.slow);
+
+// Simulate offline mode (throws error)
+NetworkSimulator.instance.setSimulation(NetworkSimulation.offline);
+```
+
 
 ---
 

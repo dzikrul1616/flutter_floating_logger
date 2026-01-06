@@ -1,3 +1,5 @@
+import 'package:example/utils/error.dart';
+
 import 'package:floating_logger/floating_logger.dart';
 
 import 'developper_page.dart';
@@ -27,6 +29,16 @@ class _MyHomePageState extends State<MyHomePage> {
         message: 'Test Fetch Failure',
         buttonText: 'Failure',
         onPressed: () => fetchFailure(),
+      ),
+      ListDataModel(
+        message: 'Test Fetch Success GraphQL (Interceptor)',
+        buttonText: 'Succeess (Int)',
+        onPressed: () => fetchSuccessInterceptor(),
+      ),
+      ListDataModel(
+        message: 'Test Fetch Failure (Interceptor)',
+        buttonText: 'Failure (Int)',
+        onPressed: () => fetchFailureInterceptor(),
       ),
     ];
   }
@@ -118,10 +130,27 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         );
       }
-    } catch (e) {
+    } on DioException catch (e) {
+      if (!context.mounted) return;
+
+      final message = CustomError.mapDioErrorToMessage(e);
+
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to fetch country data')),
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(message),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.red,
+          content: Text('Unexpected error occurred'),
+        ),
       );
     }
   }
@@ -139,6 +168,111 @@ class _MyHomePageState extends State<MyHomePage> {
       if (response.statusCode == 200) {
         // your's management data
       }
+    } on DioException catch (e) {
+      if (!context.mounted) return;
+
+      final message = CustomError.mapDioErrorToMessage(e);
+
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(message),
+        ),
+      );
+    } catch (e) {
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to fetch facts')),
+      );
+    }
+  }
+
+  Future<void> fetchSuccessInterceptor() async {
+    try {
+      final dio = Dio();
+      dio.interceptors.add(FloatingLoggerInterceptor());
+      final response = await dio.post(
+        'https://countries.trevorblades.com/',
+        options: Options(headers: {
+          "Content-Type": "application/json",
+        }),
+        data: {
+          "query": """
+          query GetCountry(\$code: ID!) {
+            country(code: \$code) {
+              name
+              capital
+              currency
+            }
+          }
+        """,
+          "variables": {"code": "ID"}
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.green,
+            content: Text('Success Fetch Country Data (Interceptor)'),
+          ),
+        );
+      }
+    } on DioException catch (e) {
+      if (!context.mounted) return;
+
+      final message = CustomError.mapDioErrorToMessage(e);
+
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(message),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.red,
+          content: Text('Unexpected error occurred'),
+        ),
+      );
+    }
+  }
+
+  Future<void> fetchFailureInterceptor() async {
+    try {
+      final dio = Dio();
+      dio.interceptors.add(FloatingLoggerInterceptor());
+
+      final response = await dio.post(
+        'https://api.genderize.io',
+        data: FormData.fromMap({"name": "test form Data", "age": "25"}),
+        options: Options(headers: {
+          //"content-type": "multipart/form-data", // Dio sets this automatically for FormData
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        // your's management data
+      }
+    } on DioException catch (e) {
+      if (!context.mounted) return;
+
+      final message = CustomError.mapDioErrorToMessage(e);
+
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(message),
+        ),
+      );
     } catch (e) {
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(

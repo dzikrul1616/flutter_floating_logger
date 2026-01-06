@@ -1,4 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
+import 'package:example/utils/error.dart';
 import 'package:floating_logger/floating_logger.dart';
 
 import '../utils/models.dart';
@@ -389,9 +390,25 @@ class _ListPageState extends State<ListPage> {
           ),
         );
       }
-    } catch (e) {
+    } on DioException catch (e) {
+      if (!context.mounted) return;
+
+      final message = CustomError.mapDioErrorToMessage(e);
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to fetch facts')),
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(message),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.red,
+          content: Text('Unexpected error occurred'),
+        ),
       );
     }
   }

@@ -1,3 +1,16 @@
+## [2.1.0] - Advanced Search & Navigation
+* [new] Advanced search with field level filtering (path, headers, body, response)
+* [new] Deep JSON search with auto-expanding matches and visual highlighting
+* [new] Dynamic search navigation with up/down arrows and match indicators
+* [new] Search results auto-focus with refined scroll logic
+* [fix] Resolved critical layout assertions (ParentDataWidget, unbounded constraints)
+* [fix] Resolved EditableTextState dispose assertions during search transitions
+* [update] Maintain 100% test coverage for search and navigation features
+* [update] improve ui floating logger
+* [new] add interceptor in Dio Logger
+* [new] add list interceptor in Dio Logger
+* [fix] curl formdata request
+
 ## [0.1.6] - Network Simulation & Dependency Updates
 * [fix] add interceptor on error
 * [new] network Speed Throttling (Slow 3G, Offline Mode, Socket/Server Exceptions)

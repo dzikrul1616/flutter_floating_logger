@@ -8,4 +8,5 @@ void main() {
   UtilsTestMain.main();
   WidgetsTestMain.main();
   NetworkTestMain.main();
+  InterceptorTestMain.main();
 }

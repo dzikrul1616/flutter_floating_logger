@@ -10,6 +10,7 @@ void widgetFloatingLoggerShowModalTest() {
 
     setUp(() {
       widget = const FloatingLoggerModalBottomWidget();
+      NetworkSimulator.instance.setSimulation(NetworkSimulation.normal);
     });
 
     testWidgets('Toggle filter functionality', (WidgetTester tester) async {
@@ -329,5 +330,101 @@ void widgetFloatingLoggerShowModalTest() {
       // Clean up
       DioLogger.instance.logs.clearLogs();
     });
+    testWidgets('Search navigation functionality and looping',
+        (WidgetTester tester) async {
+      DioLogger.instance.logs.clearLogs();
+      DioLogger.instance.logs.logsNotifier.value = [
+        LogRepositoryModel(path: '/api/test1', message: 'test'),
+        LogRepositoryModel(path: '/api/test2', message: 'test'),
+        LogRepositoryModel(path: '/api/other', message: 'other'),
+      ];
+
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: widget)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'test');
+      await tester.pumpAndSettle();
+
+      final state = tester.state<FloatingLoggerModalBottomWidgetState>(
+        find.byType(FloatingLoggerModalBottomWidget),
+      );
+      expect(state.searchQuery.value, 'test');
+
+      // Should find 2 matches
+      expect(find.textContaining('1/2'), findsOneWidget);
+
+      // Navigate down to match 2
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('2/2'), findsOneWidget);
+
+      // Loop back to 1
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('1/2'), findsOneWidget);
+
+      // Navigate up to loop to bottom (2)
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_up));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('2/2'), findsOneWidget);
+
+      // Navigate up from 2 to 1 (covers dec path)
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_up));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('1/2'), findsOneWidget);
+    });
+
+    testWidgets('Verifies all network simulation icons and interactions',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: widget)));
+
+      await tester.tap(find.byIcon(Icons.speed));
+      await tester.pumpAndSettle();
+
+      final simulations = {
+        'Offline': Icons.wifi_off,
+        'Socket Error': Icons.error_outline,
+        'Server Error': Icons.cloud_off,
+        'Timeout': Icons.timer_off,
+        'Normal': Icons.speed,
+      };
+
+      for (var entry in simulations.entries) {
+        expect(find.text(entry.key), findsWidgets);
+        // Tap to change and verify icon changes in main list
+        await tester.tap(find.text(entry.key).first);
+        await tester.pumpAndSettle();
+        expect(find.byIcon(entry.value), findsOneWidget);
+
+        // Re-open dialog for next iteration
+        await tester.tap(find.byIcon(entry.value));
+        await tester.pumpAndSettle();
+      }
+    });
+
+    testWidgets('Clear logs functionality', (WidgetTester tester) async {
+      DioLogger.instance.logs.logsNotifier.value = [
+        LogRepositoryModel(path: '/api/test')
+      ];
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: widget)));
+      expect(find.text('/api/test'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+
+      expect(DioLogger.instance.logs.logsNotifier.value, isEmpty);
+      expect(find.text('/api/test'), findsNothing);
+    });
   });
+}
+
+void main() {
+  widgetFloatingLoggerShowModalTest();
 }

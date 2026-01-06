@@ -1,7 +1,7 @@
 import 'package:dio/io.dart' show IOHttpClientAdapter;
 import 'package:floating_logger/floating_logger.dart';
 import 'package:floating_logger/src/network/network_model.dart';
-import '../utils/utils_network.dart';
+
 import 'package:flutter/foundation.dart' as foundation; // For kIsWeb
 import 'dart:io';
 
@@ -74,36 +74,9 @@ class DioLogger with DioMixin implements Dio {
   LogRepository get logs => _logRepository;
 
   // Add a custom interceptor to log request, response, and error details.
+  // Add a custom interceptor to log request, response, and error details.
   void addDefaultInterceptors() {
-    interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          try {
-            options.extra['start_time'] = DateTime.now().millisecondsSinceEpoch;
-            await NetworkSimulator.instance.simulate(options);
-            LoggerNetworkSettings.onRequest(
-              options,
-              handler,
-              logRepository,
-            );
-          } on DioException catch (e) {
-            handler.reject(e);
-          } catch (e) {
-            handler.reject(DioException(requestOptions: options, error: e));
-          }
-        },
-        onResponse: (response, handler) => LoggerNetworkSettings.onResponse(
-          response,
-          handler,
-          logRepository,
-        ),
-        onError: (error, handler) => LoggerNetworkSettings.onError(
-          error,
-          handler,
-          logRepository,
-        ),
-      ),
-    );
+    interceptors.add(FloatingLoggerInterceptor(logRepository: logRepository));
   }
 
   /// Method to add custom interceptors

@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:example/utils/error.dart';
 import 'package:floating_logger/floating_logger.dart';
 import '../utils/models.dart';
 
@@ -295,6 +296,17 @@ class _DetailItemState extends State<DetailItem> {
           ),
         );
       }
+    } on DioException catch (e) {
+      if (!context.mounted) return;
+
+      final message = CustomError.mapDioErrorToMessage(e);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(message),
+        ),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to fetch facts')),

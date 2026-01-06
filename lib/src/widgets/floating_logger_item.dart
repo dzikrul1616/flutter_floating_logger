@@ -1,4 +1,7 @@
+import 'dart:async';
+import 'dart:convert';
 import 'widgets.dart';
+
 import '../utils/utils.dart';
 import 'package:flutter/services.dart';
 import 'package:floating_logger/src/network/network_model.dart';
@@ -10,7 +13,10 @@ class FloatingLoggerItem extends StatefulWidget {
     super.key,
     required this.data,
     required this.index,
+    this.searchQuery = "",
+    this.isActive = false,
     this.child,
+    this.initialExpanded = false,
   });
 
   /// The log data to display.
@@ -19,27 +25,93 @@ class FloatingLoggerItem extends StatefulWidget {
   /// The index of the log in the list.
   final int index;
 
+  /// The search query for highlighting.
+  final String searchQuery;
+
+  /// Whether this item is the currently active search match.
+  final bool isActive;
+
   /// An optional child widget to override default UI.
   final Widget? child;
+
+  /// Whether the item should be initially expanded.
+  final bool initialExpanded;
 
   @override
   State<FloatingLoggerItem> createState() => _FloatingLoggerItemState();
 }
 
-class _FloatingLoggerItemState extends State<FloatingLoggerItem> {
+class _FloatingLoggerItemState extends State<FloatingLoggerItem>
+    with SingleTickerProviderStateMixin {
   // ValueNotifier to track expansion state of log item
-  ValueNotifier<bool> isExpand = ValueNotifier(true);
+  late ValueNotifier<bool> isExpand;
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  Timer? _expansionTimer;
 
   static const _empty = SizedBox.shrink();
 
   @override
   void initState() {
+    isExpand = ValueNotifier(widget.initialExpanded);
     super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+    if (isExpand.value) {
+      _controller.value = 1.0;
+    }
+
+    // Handle initial active state (e.g., when scrolled into view)
+    if (widget.isActive && widget.searchQuery.isNotEmpty) {
+      _expansionTimer = Timer(const Duration(milliseconds: 300), () {
+        if (mounted && widget.isActive) {
+          isExpand.value = true;
+          _controller.forward();
+        }
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(FloatingLoggerItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Synchronize expansion with active search match
+    if (widget.isActive != oldWidget.isActive ||
+        widget.searchQuery != oldWidget.searchQuery) {
+      if (widget.isActive && widget.searchQuery.isNotEmpty) {
+        if (!isExpand.value) {
+          // Delay expansion to allow previous item to collapse and scroll to finish
+          _expansionTimer?.cancel();
+          _expansionTimer = Timer(const Duration(milliseconds: 300), () {
+            if (mounted && widget.isActive) {
+              isExpand.value = true;
+              _controller.forward();
+            }
+          });
+        }
+      } else {
+        // If it was active but no longer is, or search cleared, collapse it
+        _expansionTimer?.cancel();
+        if (isExpand.value) {
+          isExpand.value = false;
+          _controller.reverse();
+        }
+      }
+    }
   }
 
   @override
   void dispose() {
+    _expansionTimer?.cancel();
     isExpand.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -56,10 +128,24 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem> {
             onLongPress: () => copyCurlToClipboard(context),
             onTap: () {
               isExpand.value = !value;
+              if (isExpand.value) {
+                _controller.forward();
+              } else {
+                _controller.reverse();
+              }
             },
             child: Padding(
               padding: const EdgeInsets.all(5),
-              child: _buildLogContainer(context, value),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: widget.isActive
+                      ? Colors.orange.withOpacity(0.15)
+                      : Colors.transparent,
+                ),
+                child: _buildLogContainer(context, value),
+              ),
             ),
           );
         });
@@ -74,6 +160,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem> {
       );
     } else {
       Clipboard.setData(ClipboardData(text: widget.data.curl!)).then((_) {
+        if (!mounted) return;
         LoggerToast.successToast(
           // ignore: use_build_context_synchronously
           context,
@@ -112,10 +199,12 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem> {
         ),
       ],
       border: Border.all(
-        width: 2.0,
-        color: _getStatusColor(
-          isBorder: true,
-        ),
+        width: widget.isActive ? 3.0 : 2.0,
+        color: widget.isActive
+            ? Colors.orange
+            : _getStatusColor(
+                isBorder: true,
+              ),
       ),
       borderRadius: BorderRadius.circular(12),
       color: Colors.white,
@@ -126,9 +215,9 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem> {
   Widget _buildIndex() {
     return SizedBox(
       width: 20,
-      child: Text(
+      child: _highlightSubText(
         '${widget.index + 1}. ',
-        style: GoogleFonts.inter(),
+        GoogleFonts.inter(),
       ),
     );
   }
@@ -139,10 +228,21 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem> {
       child: Column(
         children: [
           _buildLogHeader(isExpanded),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            child: isExpanded ? _empty : _buildExpandedDetails(),
+          AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) {
+              if (_animation.isDismissed && !isExpand.value) {
+                return const SizedBox.shrink();
+              }
+              return FadeTransition(
+                opacity: _animation,
+                child: SizeTransition(
+                  sizeFactor: _animation,
+                  axisAlignment: -1.0,
+                  child: _buildExpandedDetails(),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -160,9 +260,9 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-              child: Text(
+              child: _highlightSubText(
                 widget.data.path ?? "",
-                style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                GoogleFonts.inter(fontWeight: FontWeight.bold),
               ),
             ),
             Icon(
@@ -270,6 +370,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem> {
     var curl = widget.data.curl;
     var responseTime = widget.data.responseTime;
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Divider(
           thickness: 2,
@@ -283,36 +384,53 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem> {
                 'Response Time',
                 "$responseTime ms",
               ),
-        message == null || message.isEmpty
+        _isDataEmpty(message)
             ? _empty
             : _codeFieldCopy(
                 'Message',
-                message,
+                message!,
               ),
-        param == null
+        _isDataEmpty(param)
             ? _empty
             : _CollapsibleCodeField(
                 title: 'Param',
-                data: param,
+                data: param!,
+                searchQuery: widget.searchQuery,
               ),
-        widget.data.data == "null"
+        _isDataEmpty(widget.data.type == "REQUEST"
+                ? widget.data.data
+                : widget.data.responseData)
             ? _empty
             : _CollapsibleCodeField(
                 title: 'Data',
                 data: widget.data.type == "REQUEST"
                     ? ((widget.data.data ?? ""))
-                    : (widget.data.responseData ?? "")),
-        header == null
+                    : (widget.data.responseData ?? ""),
+                searchQuery: widget.searchQuery,
+              ),
+        _isDataEmpty(header)
             ? _empty
             : _CollapsibleCodeField(
                 title: 'Header',
-                data: header,
+                data: header!,
+                searchQuery: widget.searchQuery,
               ),
-        curl == null
+        _isDataEmpty(curl)
             ? _empty
-            : _CollapsibleCodeField(title: 'cURL', data: curl),
+            : _CollapsibleCodeField(
+                title: 'cURL',
+                data: curl!,
+                searchQuery: widget.searchQuery,
+              ),
       ],
     );
+  }
+
+  bool _isDataEmpty(String? data) {
+    if (data == null || data.isEmpty || data == "null") return true;
+    final trimmed = data.trim();
+    if (trimmed == "{}" || trimmed == "[]") return true;
+    return false;
   }
 
   Widget _codeFieldCopy(
@@ -358,9 +476,9 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem> {
                   ),
                 ],
               ),
-              Text(
+              _highlightSubText(
                 data,
-                style: GoogleFonts.inter(
+                GoogleFonts.inter(
                   fontWeight: FontWeight.w400,
                   fontSize: 12,
                 ),
@@ -369,6 +487,49 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _highlightSubText(String text, TextStyle style) {
+    if (widget.searchQuery.isEmpty) {
+      return Text(text, style: style);
+    }
+
+    final query = widget.searchQuery.toLowerCase();
+    final lowerText = text.toLowerCase();
+    final List<TextSpan> spans = [];
+    int start = 0;
+    int index = lowerText.indexOf(query);
+
+    while (index != -1) {
+      if (index > start) {
+        spans.add(TextSpan(
+          text: text.substring(start, index),
+          style: style,
+        ));
+      }
+      spans.add(TextSpan(
+        text: text.substring(index, index + query.length),
+        style: style.copyWith(
+          backgroundColor: Colors.orange,
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ));
+      start = index + query.length;
+      index = lowerText.indexOf(query, start);
+    }
+
+    if (start < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(start),
+        style: style,
+      ));
+    }
+
+    return Text.rich(
+      TextSpan(children: spans),
+      style: style,
     );
   }
 
@@ -442,10 +603,12 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem> {
 class _CollapsibleCodeField extends StatefulWidget {
   final String title;
   final String data;
+  final String searchQuery;
 
   const _CollapsibleCodeField({
     required this.title,
     required this.data,
+    this.searchQuery = "",
   });
 
   @override
@@ -459,27 +622,24 @@ class _CollapsibleCodeFieldState extends State<_CollapsibleCodeField> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 6),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: Colors.grey[200],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _isExpanded = !_isExpanded;
-                        });
-                      },
-                      behavior: HitTestBehavior.opaque,
+      child: GestureDetector(
+        onTap: () {
+          // Do nothing to absorb the tap and prevent the main Log Item from toggling.
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.grey[200],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
                       child: Text(
                         widget.title,
                         style: GoogleFonts.inter(
@@ -488,65 +648,123 @@ class _CollapsibleCodeFieldState extends State<_CollapsibleCodeField> {
                         ),
                       ),
                     ),
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _isExpanded = !_isExpanded;
-                          });
-                        },
-                        child: Icon(
-                          _isExpanded
-                              ? Icons.arrow_drop_up
-                              : Icons.arrow_drop_down,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () {
-                          Clipboard.setData(ClipboardData(text: widget.data))
-                              .then((_) {
-                            if (!mounted) return;
-                            LoggerToast.successToast(
-                              // ignore: use_build_context_synchronously
-                              context,
-                              "Successfully copied ${widget.title}",
-                            );
-                          });
-                        },
-                        child: Icon(
-                          Icons.copy,
-                          size: 15,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                child: _isExpanded
-                    ? Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          widget.data,
-                          style: GoogleFonts.inter(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 12,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _isExpanded = !_isExpanded;
+                            });
+                          },
+                          child: Icon(
+                            _isExpanded
+                                ? Icons.arrow_drop_up
+                                : Icons.arrow_drop_down,
+                            size: 20,
                           ),
                         ),
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ],
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () {
+                            Clipboard.setData(ClipboardData(text: widget.data))
+                                .then((_) {
+                              if (!mounted) return;
+                              LoggerToast.successToast(
+                                // ignore: use_build_context_synchronously
+                                context,
+                                "Successfully copied ${widget.title}",
+                              );
+                            });
+                          },
+                          child: const Icon(
+                            Icons.copy,
+                            size: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                  child: _isExpanded
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: _buildContent(),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildContent() {
+    try {
+      if (widget.data.trim().startsWith('{') ||
+          widget.data.trim().startsWith('[')) {
+        final dynamic jsonObj = jsonDecode(widget.data);
+        return FloatinLoggerJsonViewer(
+          jsonObj,
+          searchQuery: widget.searchQuery,
+        );
+      }
+    } catch (_) {}
+    // Fallback to text if not JSON or parsing fails
+    return _highlightSubText(
+      widget.data,
+      GoogleFonts.inter(
+        fontWeight: FontWeight.w400,
+        fontSize: 12,
+      ),
+    );
+  }
+
+  Widget _highlightSubText(String text, TextStyle style) {
+    if (widget.searchQuery.isEmpty) {
+      return Text(text, style: style);
+    }
+
+    final query = widget.searchQuery.toLowerCase();
+    final lowerText = text.toLowerCase();
+    final List<TextSpan> spans = [];
+    int start = 0;
+    int index = lowerText.indexOf(query);
+
+    while (index != -1) {
+      if (index > start) {
+        spans.add(TextSpan(
+          text: text.substring(start, index),
+          style: style,
+        ));
+      }
+      spans.add(TextSpan(
+        text: text.substring(index, index + query.length),
+        style: style.copyWith(
+          backgroundColor: Colors.orange,
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ));
+      start = index + query.length;
+      index = lowerText.indexOf(query, start);
+    }
+
+    if (start < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(start),
+        style: style,
+      ));
+    }
+
+    return Text.rich(
+      TextSpan(children: spans),
+      style: style,
     );
   }
 }

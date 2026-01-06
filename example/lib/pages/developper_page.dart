@@ -141,6 +141,46 @@ class _DevelopperModeState extends State<DevelopperMode> {
                           )
                         ],
                       ),
+                      const Divider(),
+                      const SizedBox(height: 10),
+                      Text("Network Simulation",
+                          style: GoogleFonts.inter(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                      Wrap(
+                        spacing: 10,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              NetworkSimulator.instance
+                                  .setSimulation(NetworkSimulation.normal);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text("Simulation: Normal")));
+                            },
+                            child: const Text("Normal"),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              NetworkSimulator.instance
+                                  .setSimulation(NetworkSimulation.normal);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text("Simulation: Slow (3s)")));
+                            },
+                            child: const Text("Slow"),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              NetworkSimulator.instance
+                                  .setSimulation(NetworkSimulation.offline);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text("Simulation: Offline")));
+                            },
+                            child: const Text("Offline"),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 )
