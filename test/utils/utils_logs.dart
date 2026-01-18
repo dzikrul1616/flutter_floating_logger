@@ -189,5 +189,81 @@ void utilsLogs() {
       expect(parsedData.contains('"logger"'), isTrue);
       expect(parsedData.contains('"awesome"'), isTrue);
     });
+
+    test('should correctly handle binary response (image) in logMessage', () {
+      final options = RequestOptions(
+        method: 'GET',
+        path: 'https://example.com/image.png',
+      );
+      final response = Response<dynamic>(
+        requestOptions: options,
+        data: [1, 2, 3, 4], // Fake binary data
+        statusCode: 200,
+        headers: Headers.fromMap({
+          'content-type': ['image/png'],
+        }),
+      );
+
+      LoggerLogsData.logMessage(
+        response,
+        AnsiColor.green,
+        mockLogRepository,
+        curlCommand,
+        name: 'RES',
+      );
+
+      final captured = verify(mockLogRepository.addLog(captureAny)).captured;
+      final logModel = captured.first as LogRepositoryModel;
+
+      expect(logModel.isBinaryResponse, isTrue);
+      expect(logModel.binaryData, isNotNull);
+      expect(logModel.contentType, contains('image/png'));
+      expect(logModel.responseData, '[Binary Data]');
+    });
+
+    test('should correctly handle binary response (pdf) in logMessage', () {
+      final options = RequestOptions(
+        method: 'GET',
+        path: 'https://example.com/file.pdf',
+      );
+      final response = Response<dynamic>(
+        requestOptions: options,
+        data: [5, 6, 7, 8], // Fake binary data
+        statusCode: 200,
+        headers: Headers.fromMap({
+          'content-type': ['application/pdf'],
+        }),
+      );
+
+      LoggerLogsData.logMessage(
+        response,
+        AnsiColor.green,
+        mockLogRepository,
+        curlCommand,
+        name: 'RES',
+      );
+
+      final captured = verify(mockLogRepository.addLog(captureAny)).captured;
+      final logModel = captured.first as LogRepositoryModel;
+
+      expect(logModel.isBinaryResponse, isTrue);
+      expect(logModel.binaryData, isNotNull);
+      expect(logModel.contentType, contains('application/pdf'));
+      expect(logModel.responseData, '[Binary Data]');
+    });
+
+    test(
+        'getStatusCode should return informative message when response is null',
+        () {
+      final dioException = DioException(
+        requestOptions:
+            RequestOptions(method: 'GET', path: 'https://example.com'),
+        response: null,
+        message: 'No response',
+      );
+
+      final statusCode = LoggerLogsData.getStatusCode(dioException);
+      expect(statusCode, 'Could not get status');
+    });
   });
 }

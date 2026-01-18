@@ -1,3 +1,6 @@
+## [2.1.1] - PDF & Image Support
+* [new] PDF & Image Support response
+
 ## [2.1.0] - Advanced Search & Navigation
 * [new] Advanced search with field level filtering (path, headers, body, response)
 * [new] Deep JSON search with auto-expanding matches and visual highlighting

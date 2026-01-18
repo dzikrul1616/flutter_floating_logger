@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'utils.dart';
 import 'dart:developer';
 import 'package:floating_logger/src/network/network_model.dart';
@@ -50,6 +51,30 @@ class LoggerLogsData {
     if (data is Response<dynamic>) return data.data;
     if (data is DioException) return data.response?.data;
     return data; // Fallback for unsupported data types
+  }
+
+  /// Helper to extract binary data (Uint8List) from response
+  static Uint8List? _getBinaryData<T>(T data) {
+    if (data is Response<dynamic> && data.data is List<int>) {
+      return Uint8List.fromList(data.data as List<int>);
+    }
+    return null;
+  }
+
+  /// Helper to extract content-type from headers
+  static String? _getContentType<T>(T data) {
+    if (data is Response<dynamic>) {
+      return data.headers.value('content-type');
+    }
+    return null;
+  }
+
+  /// Check if response is binary (image or PDF) based on content-type
+  static bool _isBinaryResponse(String? contentType) {
+    if (contentType == null) return false;
+    final lowerType = contentType.toLowerCase();
+    return lowerType.startsWith('image/') ||
+        lowerType.contains('application/pdf');
   }
 
   static Map<String, dynamic> _formDataToMap(FormData data) {
@@ -146,14 +171,29 @@ class LoggerLogsData {
     final param = _getParam(data);
     final message = getMessage(data);
 
-    // Construct the log message
+    // Detect binary responses early for console log optimization
+    final contentType = _getContentType(data);
+    final isBinary = _isBinaryResponse(contentType);
+    final binaryData = isBinary ? _getBinaryData(data) : null;
+
+    // Construct the data representation for console log
+    // If it's binary, don't print the huge byte array to avoid lag
+    String dataConsoleOutput;
+    if (isBinary) {
+      final typeExt = contentType?.split('/').last.split(';').first ?? 'bin';
+      dataConsoleOutput = "[Binary Data: $typeExt]";
+    } else {
+      dataConsoleOutput = FormatLogger.parseJson(dataText);
+    }
+
+    // Construct the log message for console
     final logMessage = "${color}Method  :${AnsiColor.reset} $method\n"
         "${color}Url     :${AnsiColor.reset} $url\n"
         "${color}Status  :${AnsiColor.reset} $statusCode \n"
         "${color}Duration:${AnsiColor.reset} ${duration != null ? '$duration ms' : '-'}\n"
         "${color}Message :${AnsiColor.reset} ${message.isEmpty ? '-' : message}\n"
         "${color}Param   :\n${AnsiColor.reset}${FormatLogger.parseJson(param)}\n"
-        "${color}Data    :\n${AnsiColor.reset}${FormatLogger.parseJson(dataText)}\n"
+        "${color}Data    :\n${AnsiColor.reset}$dataConsoleOutput\n"
         "${color}Headers :\n${AnsiColor.reset}${FormatLogger.parseJson(headers)}\n"
         "${color}Curl    :${AnsiColor.reset} $curlCommand";
 
@@ -173,7 +213,8 @@ class LoggerLogsData {
                 : "ERROR",
         method: method,
         path: url,
-        responseData: FormatLogger.parseJson(dataText),
+        responseData:
+            isBinary ? "[Binary Data]" : FormatLogger.parseJson(dataText),
         data: FormatLogger.parseJson(dataText),
         response: statusCode,
         queryparameter: FormatLogger.parseJson(param),
@@ -181,6 +222,9 @@ class LoggerLogsData {
         message: message,
         responseTime: duration,
         curl: curlCommand,
+        binaryData: binaryData,
+        contentType: contentType,
+        isBinaryResponse: isBinary,
       ),
     );
   }

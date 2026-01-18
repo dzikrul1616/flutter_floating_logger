@@ -9,6 +9,7 @@ import '../test.dart';
   MockSpec<DioException>(),
   MockSpec<LogRepository>(),
   MockSpec<RequestOptions>(),
+  MockSpec<Headers>(),
   MockSpec<ErrorInterceptorHandler>(),
   MockSpec<RequestInterceptorHandler>(),
   MockSpec<ResponseInterceptorHandler>(),

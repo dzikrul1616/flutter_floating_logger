@@ -267,8 +267,8 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
             ),
             Icon(
               isExpanded
-                  ? Icons.arrow_drop_down_sharp
-                  : Icons.arrow_drop_up_sharp,
+                  ? Icons.arrow_drop_up_sharp
+                  : Icons.arrow_drop_down_sharp,
               color: Colors.grey[700],
             ),
           ],
@@ -397,17 +397,20 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
                 data: param!,
                 searchQuery: widget.searchQuery,
               ),
-        _isDataEmpty(widget.data.type == "REQUEST"
-                ? widget.data.data
-                : widget.data.responseData)
-            ? _empty
-            : _CollapsibleCodeField(
-                title: 'Data',
-                data: widget.data.type == "REQUEST"
-                    ? ((widget.data.data ?? ""))
-                    : (widget.data.responseData ?? ""),
-                searchQuery: widget.searchQuery,
-              ),
+        // Binary Preview Section
+        widget.data.isBinaryResponse && widget.data.binaryData != null
+            ? _buildBinaryPreview()
+            : _isDataEmpty(widget.data.type == "REQUEST"
+                    ? widget.data.data
+                    : widget.data.responseData)
+                ? _empty
+                : _CollapsibleCodeField(
+                    title: 'Data',
+                    data: widget.data.type == "REQUEST"
+                        ? ((widget.data.data ?? ""))
+                        : (widget.data.responseData ?? ""),
+                    searchQuery: widget.searchQuery,
+                  ),
         _isDataEmpty(header)
             ? _empty
             : _CollapsibleCodeField(
@@ -431,6 +434,181 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
     final trimmed = data.trim();
     if (trimmed == "{}" || trimmed == "[]") return true;
     return false;
+  }
+
+  /// Builds binary preview widget (image or PDF indicator)
+  Widget _buildBinaryPreview() {
+    final contentType = widget.data.contentType?.toLowerCase() ?? '';
+    final binaryData = widget.data.binaryData;
+
+    if (binaryData == null) return _empty;
+
+    // Check if it's an image
+    if (contentType.startsWith('image/')) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 6),
+        child: GestureDetector(
+          onTap: () => _showImageDialog(context, binaryData),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.grey[200],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Image Preview',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const Icon(Icons.zoom_in, size: 18, color: Colors.blue),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.memory(
+                      binaryData,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            'Failed to load image',
+                            style: GoogleFonts.inter(
+                              color: Colors.red,
+                              fontSize: 12,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Size: ${(binaryData.length / 1024).toStringAsFixed(2)} KB',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Check if it's a PDF
+    if (contentType.contains('application/pdf')) {
+      // Try to extract filename from path if it exists
+      String fileName = 'PDF Document';
+      if (widget.data.path != null && widget.data.path!.isNotEmpty) {
+        try {
+          final uri = Uri.parse(widget.data.path!);
+          final pathSegments = uri.pathSegments;
+          if (pathSegments.isNotEmpty) {
+            final lastSegment = pathSegments.last;
+            if (lastSegment.toLowerCase().endsWith('.pdf')) {
+              fileName = lastSegment;
+            }
+          }
+        } catch (_) {
+          // Fallback to default
+        }
+      }
+
+      return Padding(
+        padding: const EdgeInsets.only(top: 6),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.grey[200],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.picture_as_pdf,
+                      color: Colors.red,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            fileName,
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            'Size: ${(binaryData.length / 1024).toStringAsFixed(2)} KB',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Fallback for other binary types
+    return _empty;
+  }
+
+  /// Shows a zoomable image dialog
+  void _showImageDialog(BuildContext context, Uint8List binaryData) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.all(10),
+        child: Stack(
+          alignment: Alignment.topRight,
+          children: [
+            InteractiveViewer(
+              panEnabled: true,
+              minScale: 0.5,
+              maxScale: 4,
+              child: Image.memory(
+                binaryData,
+                fit: BoxFit.contain,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.black54),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _codeFieldCopy(

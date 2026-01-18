@@ -653,6 +653,206 @@ void widgetFloatingLoggerItemTest() {
       // Verify expansion (Divider should be present immediately)
       expect(find.byType(Divider), findsOneWidget);
     });
+
+    testWidgets('Should display image preview correctly',
+        (WidgetTester tester) async {
+      final logData = LogRepositoryModel(
+        type: 'RESPONSE',
+        isBinaryResponse: true,
+        binaryData: Uint8List.fromList([
+          0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG header
+          0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+          0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+          0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+          0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41,
+          0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+          0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
+          0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
+          0x42, 0x60, 0x82
+        ]),
+        contentType: 'image/png',
+        path: '/api/image',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerItem(
+              data: logData,
+              index: 0,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(FloatingLoggerItem));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Image Preview'), findsOneWidget);
+      expect(find.byType(Image), findsOneWidget);
+    });
+
+    testWidgets('Should open image zoom dialog when tapped',
+        (WidgetTester tester) async {
+      final logData = LogRepositoryModel(
+        type: 'RESPONSE',
+        isBinaryResponse: true,
+        binaryData: Uint8List.fromList([
+          0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG header
+          0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+          0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+          0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+          0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41,
+          0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+          0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
+          0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
+          0x42, 0x60, 0x82
+        ]),
+        contentType: 'image/png',
+        path: '/api/image',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerItem(
+              data: logData,
+              index: 0,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(FloatingLoggerItem));
+      await tester.pumpAndSettle();
+
+      // Tap the image to zoom (it's inside a GestureDetector in _buildBinaryPreview)
+      final imagePreview = find.text('Image Preview');
+      await tester.tap(imagePreview);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(Dialog), findsOneWidget);
+      expect(find.byType(InteractiveViewer), findsOneWidget);
+
+      // Close dialog
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+      expect(find.byType(Dialog), findsNothing);
+    });
+
+    testWidgets('Should display PDF preview with filename correctly',
+        (WidgetTester tester) async {
+      final logData = LogRepositoryModel(
+        type: 'RESPONSE',
+        isBinaryResponse: true,
+        binaryData: Uint8List.fromList([1, 2, 3, 4]),
+        contentType: 'application/pdf',
+        path: 'https://example.com/documents/sample_report.pdf',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerItem(
+              data: logData,
+              index: 0,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(FloatingLoggerItem));
+      await tester.pumpAndSettle();
+
+      expect(find.text('sample_report.pdf'), findsOneWidget);
+      expect(find.byIcon(Icons.picture_as_pdf), findsOneWidget);
+    });
+
+    testWidgets('Should handle PDF with no filename in path',
+        (WidgetTester tester) async {
+      final logData = LogRepositoryModel(
+        type: 'RESPONSE',
+        isBinaryResponse: true,
+        binaryData: Uint8List.fromList([1, 2, 3, 4]),
+        contentType: 'application/pdf',
+        path: 'https://example.com/api/pdf-stream',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerItem(
+              data: logData,
+              index: 0,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(FloatingLoggerItem));
+      await tester.pumpAndSettle();
+
+      expect(find.text('PDF Document'), findsOneWidget);
+    });
+
+    testWidgets('Should handle malformed path URI for PDF',
+        (WidgetTester tester) async {
+      final logData = LogRepositoryModel(
+        type: 'RESPONSE',
+        isBinaryResponse: true,
+        binaryData: Uint8List.fromList([1, 2, 3, 4]),
+        contentType: 'application/pdf',
+        path: 'this is not a uri',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerItem(
+              data: logData,
+              index: 0,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(FloatingLoggerItem));
+      await tester.pumpAndSettle();
+
+      expect(find.text('PDF Document'), findsOneWidget);
+    });
+
+    testWidgets('Should show error when image bytes are invalid',
+        (WidgetTester tester) async {
+      final logData = LogRepositoryModel(
+        type: 'RESPONSE',
+        isBinaryResponse: true,
+        binaryData: Uint8List.fromList([0, 0, 0, 0]), // Invalid image bytes
+        contentType: 'image/png',
+        path: '/api/invalid-image',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerItem(
+              data: logData,
+              index: 0,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(FloatingLoggerItem));
+      await tester.pumpAndSettle();
+
+      // Image decoding is async, we need to pump and wait for errorBuilder to trigger
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(find.text('Failed to load image'), findsOneWidget);
+    });
   });
 }
 

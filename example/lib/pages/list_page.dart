@@ -1,7 +1,9 @@
-// ignore_for_file: use_build_context_synchronously
-import 'package:example/utils/error.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:floating_logger/floating_logger.dart';
-
+import '../bloc/list_bloc.dart';
+import '../bloc/list_event.dart';
+import '../bloc/list_state.dart';
+import '../widget/error_widget.dart';
 import '../utils/models.dart';
 import '../widget/refresh.dart';
 import 'detail_item.dart';
@@ -15,82 +17,118 @@ class ListPage extends StatefulWidget {
 }
 
 class _ListPageState extends State<ListPage> {
-  List<ListData>? data;
-  List<ListData>? filteredData;
-  final ValueNotifier<bool> isLoading = ValueNotifier(true);
-  @override
-  void initState() {
-    fetchSuccess();
-    super.initState();
-  }
-
-  void filterSearch(String query) {
-    if (query.isEmpty) {
-      setState(() => filteredData = data);
-      return;
-    }
-    setState(() {
-      filteredData = data!
-          .where(
-              (item) => item.title!.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-    });
-  }
+  List<ListData>? _filteredData;
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xffF0F0F0),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: ValueListenableBuilder(
-            valueListenable: isLoading,
-            builder: (context, loading, child) {
-              return loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : CustomRefresh(
-                      onRefresh: () async => fetchSuccess(),
-                      child: ListView(
-                        children: [
-                          _headerWidget(),
-                          filteredData!.isEmpty
-                              ? SizedBox(
-                                  width: MediaQuery.of(context).size.width,
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.6,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.shopify,
-                                        size: 50,
-                                      ),
-                                      Text(
-                                        'Not found item!',
-                                        style: GoogleFonts.oswald(
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text(
-                                        'There is no item available for now!',
-                                        style: GoogleFonts.oswald(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.normal,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : _bodyWidget(),
-                        ],
-                      ),
-                    );
-            }),
+    return BlocProvider(
+      create: (context) => ListBloc()..add(FetchList()),
+      child: Scaffold(
+        backgroundColor: const Color(0xffF0F0F0),
+        body: BlocBuilder<ListBloc, ListState>(
+          builder: (context, state) {
+            final data = state is ListSuccess ? state.data : <ListData>[];
+
+            return Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _headerWidget(context, data),
+                  Expanded(
+                    child: _buildContentByState(context, state),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
+  }
+
+  Widget _buildContentByState(BuildContext context, ListState state) {
+    if (state is ListLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (state is ListFailure) {
+      return CustomErrorWidget(
+        title: state.title,
+        subtitle: state.message,
+        onRetry: () => context.read<ListBloc>().add(FetchList()),
+      );
+    }
+
+    if (state is ListSuccess) {
+      return _buildSuccessContent(context, state.data);
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildSuccessContent(BuildContext context, List<ListData> data) {
+    _applyFilter(data);
+
+    return CustomRefresh(
+      onRefresh: () async {
+        context.read<ListBloc>().add(FetchList());
+      },
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          if (_filteredData!.isEmpty)
+            _buildEmptyState(context)
+          else
+            _bodyWidget(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height * 0.6,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.shopify,
+            size: 50,
+          ),
+          Text(
+            'Not found item!',
+            style: GoogleFonts.oswald(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            'There is no item available for now!',
+            style: GoogleFonts.oswald(
+              fontSize: 16,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _applyFilter(List<ListData> data) {
+    if (_searchQuery.isEmpty) {
+      _filteredData = data;
+    } else {
+      _filteredData = data
+          .where((item) =>
+              item.title!.toLowerCase().contains(_searchQuery.toLowerCase()))
+          .toList();
+    }
   }
 
   Padding _bodyWidget() {
@@ -112,11 +150,11 @@ class _ListPageState extends State<ListPage> {
           crossAxisSpacing: 20,
           mainAxisExtent: 230,
         ),
-        itemCount: filteredData?.length,
+        itemCount: _filteredData?.length,
         shrinkWrap: true,
         physics: const ScrollPhysics(),
         itemBuilder: (BuildContext context, int index) {
-          final item = filteredData![index];
+          final item = _filteredData![index];
           final ValueNotifier<bool> off = ValueNotifier(true);
           return GestureDetector(
             onTap: () => Navigator.pushNamed(
@@ -255,161 +293,112 @@ class _ListPageState extends State<ListPage> {
     );
   }
 
-  Padding _headerWidget() {
+  Padding _headerWidget(BuildContext context, List<ListData> data) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 6.0,
-                    horizontal: 12.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: const BorderRadius.all(
-                      Radius.circular(12.0),
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 6.0,
+                      horizontal: 12.0,
                     ),
-                    border: Border.all(
-                      width: 1.0,
-                      color: Colors.grey[400]!,
-                    ),
-                  ),
-                  child: const Center(
-                      child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                    ),
-                  )),
-                ),
-              ),
-              const SizedBox(
-                width: 10.0,
-              ),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 6.0,
-                    horizontal: 12.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: const BorderRadius.all(
-                      Radius.circular(12.0),
-                    ),
-                    border: Border.all(
-                      width: 1.0,
-                      color: Colors.grey[400]!,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Icon(Icons.search),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(12.0),
                       ),
-                      Expanded(
-                        child: TextFormField(
-                          onChanged: filterSearch,
-                          initialValue: null,
-                          decoration: const InputDecoration.collapsed(
-                            filled: true,
-                            fillColor: Colors.transparent,
-                            hoverColor: Colors.transparent,
-                            hintText: "Search",
+                      border: Border.all(
+                        width: 1.0,
+                        color: Colors.grey[400]!,
+                      ),
+                    ),
+                    child: const Center(
+                        child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                      ),
+                    )),
+                  ),
+                ),
+                const SizedBox(
+                  width: 10.0,
+                ),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 6.0,
+                      horizontal: 12.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(12.0),
+                      ),
+                      border: Border.all(
+                        width: 1.0,
+                        color: Colors.grey[400]!,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Icon(Icons.search),
+                        ),
+                        Expanded(
+                          child: TextFormField(
+                            onChanged: (value) {
+                              setState(() {
+                                _searchQuery = value;
+                                _applyFilter(data);
+                              });
+                            },
+                            initialValue: null,
+                            decoration: const InputDecoration.collapsed(
+                              filled: true,
+                              fillColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              hintText: "Search",
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
+              ],
+            ),
+            const SizedBox(
+              height: 20.0,
+            ),
+            Text(
+              'Fashion',
+              style: GoogleFonts.oswald(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
               ),
-            ],
-          ),
-          const SizedBox(
-            height: 20.0,
-          ),
-          Text(
-            'Fashion',
-            style: GoogleFonts.oswald(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
             ),
-          ),
-          Text(
-            'Get More 20% discount for new user',
-            style: GoogleFonts.oswald(
-              fontSize: 16,
-              fontWeight: FontWeight.normal,
+            Text(
+              'Get More 20% discount for new user',
+              style: GoogleFonts.oswald(
+                fontSize: 16,
+                fontWeight: FontWeight.normal,
+              ),
             ),
-          ),
-          const SizedBox(
-            height: 20.0,
-          ),
-        ],
+            const SizedBox(
+              height: 20.0,
+            ),
+          ],
+        ),
       ),
     );
-  }
-
-  Future<void> fetchSuccess() async {
-    try {
-      final response = await DioLogger.instance.get(
-        'https://fakestoreapi.com/products',
-        options: Options(headers: {
-          "content-type": "application/json",
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        isLoading.value = false;
-        final List<dynamic> jsonData = response.data;
-        data = jsonData.map((item) => ListData.fromJson(item)).toList();
-        filteredData = List.from(data!);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: Colors.green,
-            content: Text(
-              'Success Fectch',
-            ),
-          ),
-        );
-      } else if (response.statusCode! > 300) {
-        isLoading.value = false;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: Colors.red,
-            content: Text(
-              'Failed fetch',
-            ),
-          ),
-        );
-      }
-    } on DioException catch (e) {
-      if (!context.mounted) return;
-
-      final message = CustomError.mapDioErrorToMessage(e);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Colors.red,
-          content: Text(message),
-        ),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Colors.red,
-          content: Text('Unexpected error occurred'),
-        ),
-      );
-    }
   }
 }

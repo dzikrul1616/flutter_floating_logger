@@ -119,6 +119,9 @@ void networkDio() {
     });
 
     test('onResponse should call LoggerNetworkSettings.onResponse', () {
+      final mockHeaders = MockHeaders();
+      when(mockHeaders.value('content-type')).thenReturn(null);
+      when(mockResponse.headers).thenReturn(mockHeaders);
       when(mockResponse.requestOptions).thenReturn(mockRequestOptions);
       when(mockResponseHandler.next(mockResponse)).thenReturn(null);
 
