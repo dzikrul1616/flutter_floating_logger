@@ -15,7 +15,7 @@ dependencies:
   custom_refresh_indicator: ^4.0.1
   dio: ^5.8.0+1
   flutter_bloc: ^9.1.1
-  google_fonts: ^6.3.3
+  google_fonts: 6.2.1
   equatable: ^2.0.8
 
 dev_dependencies:
