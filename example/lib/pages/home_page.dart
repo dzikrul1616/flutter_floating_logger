@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:example/utils/error.dart';
 
 import 'package:floating_logger/floating_logger.dart';
@@ -39,6 +40,16 @@ class _MyHomePageState extends State<MyHomePage> {
         message: 'Test Fetch Failure (Interceptor)',
         buttonText: 'Failure (Int)',
         onPressed: () => fetchFailureInterceptor(),
+      ),
+      ListDataModel(
+        message: 'Test Fetch PDF (Binary Response)',
+        buttonText: 'Get PDF',
+        onPressed: () => getPdf(),
+      ),
+      ListDataModel(
+        message: 'Test Fetch Image (Binary Response)',
+        buttonText: 'Get Image',
+        onPressed: () => getImage(),
       ),
     ];
   }
@@ -279,6 +290,92 @@ class _MyHomePageState extends State<MyHomePage> {
         const SnackBar(content: Text('Failed to fetch facts')),
       );
     }
+  }
+
+  /// Example: Fetch PDF binary response
+  Future<Uint8List?> getPdf() async {
+    try {
+      final response = await DioLogger.instance.get(
+        'https://www.adobe.com/support/products/enterprise/knowledgecenter/media/c4611_sample_explain.pdf',
+        options: Options(
+          responseType: ResponseType.bytes, // IMPORTANT for binary data!
+        ),
+      );
+
+      if (response.statusCode == 200 && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.green,
+            content:
+                Text('PDF fetched successfully! Check logger for preview.'),
+          ),
+        );
+        return Uint8List.fromList(response.data as List<int>);
+      }
+    } on DioException catch (e) {
+      if (!context.mounted) return null;
+      final message = CustomError.mapDioErrorToMessage(e);
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(message),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return null;
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.orange,
+          content: Text('Error: $e'),
+        ),
+      );
+    }
+    return null;
+  }
+
+  /// Example: Fetch Image binary response
+  Future<Uint8List?> getImage() async {
+    try {
+      final response = await DioLogger.instance.get(
+        'https://picsum.photos/id/237/300/200',
+        options: Options(
+          responseType: ResponseType.bytes,  
+        ),
+      );
+
+      if (response.statusCode == 200 && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.green,
+            content:
+                Text('Image fetched successfully! Check logger for preview.'),
+          ),
+        );
+        return Uint8List.fromList(response.data as List<int>);
+      }
+    } on DioException catch (e) {
+      if (!context.mounted) return null;
+      final message = CustomError.mapDioErrorToMessage(e);
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(message),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return null;
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.orange,
+          content: Text('Error: $e'),
+        ),
+      );
+    }
+    return null;
   }
 }
 

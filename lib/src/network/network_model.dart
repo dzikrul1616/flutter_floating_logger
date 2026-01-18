@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:floating_logger/floating_logger.dart'
     show ValueNotifier, Equatable, DioLogger;
 
@@ -78,6 +79,15 @@ class LogRepositoryModel extends Equatable {
   /// A cURL representation of the request, useful for replicating the request in a terminal or tool.
   final String? curl;
 
+  /// Binary data for image/PDF responses
+  final Uint8List? binaryData;
+
+  /// Content-Type header value for detecting binary responses
+  final String? contentType;
+
+  /// Flag to indicate if this is a binary response (image, PDF, etc.)
+  final bool isBinaryResponse;
+
   const LogRepositoryModel({
     this.type,
     this.method,
@@ -90,6 +100,9 @@ class LogRepositoryModel extends Equatable {
     this.responseTime,
     this.message,
     this.curl,
+    this.binaryData,
+    this.contentType,
+    this.isBinaryResponse = false,
   });
 
   /// Factory constructor for creating a log instance from a JSON object.
@@ -144,5 +157,8 @@ class LogRepositoryModel extends Equatable {
         responseTime,
         message,
         curl,
+        binaryData,
+        contentType,
+        isBinaryResponse,
       ];
 }

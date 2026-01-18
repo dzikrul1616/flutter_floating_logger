@@ -17,7 +17,7 @@
   <a href="https://github.com/dzikrul1616/flutter_floating_logger/actions/workflows/testing.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/dzikrul1616/flutter_floating_logger/testing.yml?label=CI&style=social" alt="GitHub Actions" />
   </a>
-  <img src="https://img.shields.io/badge/pub-v2.1.0-orange.svg" alt="Version" />
+  <img src="https://img.shields.io/badge/pub-v2.1.1-orange.svg" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License" />
   <a href="https://github.com/dzikrul1616/flutter_floating_logger/issues">
     <img src="https://img.shields.io/badge/Issues-Open-brightgreen.svg" alt="Issues" />
@@ -89,26 +89,20 @@ Here is the preview of the debug console log for the HTTP request:
 
 ## 📖 Usage
 
-### 🏗 Wrapping Your App with `FloatingLoggerControl`
-To activate the floating logger, wrap your main widget inside `FloatingLoggerControl`.
+### 🚀 Step 1: Logging Your API Calls
+
+There are **two ways** to ensure your API calls are captured by the floating logger. Choose the one that best fits your project:
+
+#### Option A: Use `FloatingLoggerInterceptor` (For existing custom Dio)
+If you already have your own `Dio` instance and don't want to change it, simply add the interceptor:
 
 ```dart
-return FloatingLoggerControl(
-  child: Scaffold(
-    appBar: AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      title: const Text("Floating Logger Test"),
-    ),
-  ),
-);
+final dio = Dio();
+dio.interceptors.add(FloatingLoggerInterceptor());
 ```
 
-### 🌍 Logging API Calls
-
-You can use `DioLogger` OR add `FloatingLoggerInterceptor` to your existing Dio instance.
-
-#### Option 1: Use `DioLogger` directly
-Replace your `Dio` instance with `DioLogger` to ensure API logs appear in the floating logger.
+#### Option B: Use `DioLogger` (Easiest / No-config)
+If you don't want the hassle of configuring a custom Dio instance, use the built-in `DioLogger` directly:
 
 ```dart
 Future<void> fetchData() async {
@@ -117,23 +111,28 @@ Future<void> fetchData() async {
       'https://api.genderize.io',
       queryParameters: { "name": "james" },
     );
-    if (response.statusCode == 200) {
-      // Handle API response
-    }
+    // ... handle response
   } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('API request failed')),
-    );
+    // ... handle error
   }
 }
 ```
 
-#### Option 2: Use `FloatingLoggerInterceptor`
-If you prefer using your own `Dio` instance, simply add the interceptor:
+---
+
+### 🏗 Step 2: Displaying the Logger with `FloatingLoggerControl`
+
+Once you've set up the logging (Step 1), you need to wrap your app (or a specific page) with `FloatingLoggerControl` to show the floating debug button.
 
 ```dart
-final dio = Dio();
-dio.interceptors.add(FloatingLoggerInterceptor());
+return FloatingLoggerControl(
+  child: Scaffold(
+    appBar: AppBar(
+      title: const Text("Floating Logger Test"),
+    ),
+    body: Center(child: Text("Logger is active!")),
+  ),
+);
 ```
 
 ---
