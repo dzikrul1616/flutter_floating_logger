@@ -145,10 +145,11 @@ class FloatingLoggerModalBottomWidgetState
                                       builder: (context, matchIdx, _) {
                                         return Text(
                                           "${matchIdx + 1}/${filteredLogs.length} matches found",
-                                          style: GoogleFonts.inter(
+                                          style: const TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w600,
-                                            color: Colors.orange[800],
+                                            color: Colors.orange,
+                                            fontFamily: 'Inter',
                                           ),
                                         );
                                       },
@@ -306,8 +307,9 @@ class FloatingLoggerModalBottomWidgetState
                                                     horizontal: 10,
                                                     vertical: 12),
                                             hintText: "Search logs...",
-                                            hintStyle:
-                                                GoogleFonts.inter(fontSize: 13),
+                                            hintStyle: const TextStyle(
+                                                fontSize: 13,
+                                                fontFamily: 'Inter'),
                                             suffixIcon: IconButton(
                                               padding: EdgeInsets.zero,
                                               icon: const Icon(Icons.close,
@@ -318,8 +320,11 @@ class FloatingLoggerModalBottomWidgetState
                                             focusedBorder: outlineInputBorder,
                                             border: outlineInputBorder,
                                           ),
-                                          style:
-                                              GoogleFonts.inter(fontSize: 13),
+                                          style: const TextStyle(
+                                              fontSize: 13,
+                                              fontStyle: FontStyle.italic,
+                                              fontFamily: 'Inter',
+                                              package: 'floating_logger'),
                                         ),
                                       ),
                                     ],
@@ -354,10 +359,12 @@ class FloatingLoggerModalBottomWidgetState
                                             ),
                                             child: Text(
                                               'Total Data : $filterLenght',
-                                              style: GoogleFonts.inter(
+                                              style: const TextStyle(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.normal,
                                                 color: Colors.white,
+                                                fontFamily: 'Inter',
+                                                package: 'floating_logger',
                                               ),
                                             ),
                                           ),
@@ -403,9 +410,10 @@ class FloatingLoggerModalBottomWidgetState
       builder: (context) => AlertDialog(
         title: Text(
           'Filter Logs',
-          style: GoogleFonts.inter(
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
+            fontFamily: 'Inter',
           ),
         ),
         content: SizedBox(
@@ -424,10 +432,11 @@ class FloatingLoggerModalBottomWidgetState
                     onPressed: showAllLogs,
                     child: Text(
                       'SHOW ALL',
-                      style: GoogleFonts.inter(
+                      style: const TextStyle(
                         color: Colors.black54,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
+                        fontFamily: 'Inter',
                       ),
                     ),
                   ),
@@ -438,13 +447,6 @@ class FloatingLoggerModalBottomWidgetState
                     spacing: 8.0,
                     runSpacing: 8.0,
                     children: logTypes.map((entry) {
-                      int logCount = logs
-                          .where(
-                            (log) =>
-                                log.type == entry.title ||
-                                log.method == entry.title,
-                          )
-                          .length;
                       return ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: filters.contains(entry.title)
@@ -453,13 +455,14 @@ class FloatingLoggerModalBottomWidgetState
                         ),
                         onPressed: () => toggleFilter(entry.title),
                         child: Text(
-                          '${entry.title} ($logCount)',
-                          style: GoogleFonts.inter(
+                          '${entry.title} (${logs.where((log) => log.type == entry.title || log.method == entry.title).length})',
+                          style: TextStyle(
                             color: filters.contains(entry.title)
                                 ? Colors.white
                                 : Colors.black54,
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
+                            fontFamily: 'Inter',
                           ),
                         ),
                       );
@@ -475,9 +478,10 @@ class FloatingLoggerModalBottomWidgetState
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Close',
-              style: GoogleFonts.inter(
+              style: const TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.bold,
+                fontFamily: 'Inter',
               ),
             ),
           ),
@@ -533,10 +537,11 @@ class FloatingLoggerModalBottomWidgetState
                   const SizedBox(width: 4),
                   Text(
                     simulation.label,
-                    style: GoogleFonts.inter(
+                    style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: Colors.orange,
+                      fontFamily: 'Inter',
                     ),
                   ),
                 ],
@@ -571,14 +576,19 @@ class FloatingLoggerModalBottomWidgetState
       builder: (context) => AlertDialog(
         title: Text(
           'Network Simulation',
-          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Inter',
+              package: 'floating_logger'),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: NetworkSimulation.values.map((simulation) {
             return ListTile(
               title: Text(simulation.label,
-                  style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w500, fontFamily: 'Inter')),
               leading: Icon(
                 _getSimulationIcon(simulation),
                 color: Colors.blue,

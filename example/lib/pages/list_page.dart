@@ -103,16 +103,20 @@ class _ListPageState extends State<ListPage> {
           ),
           Text(
             'Not found item!',
-            style: GoogleFonts.oswald(
+            style: const TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
+              fontFamily: 'Inter',
+              package: 'floating_logger',
             ),
           ),
-          Text(
+          const Text(
             'There is no item available for now!',
-            style: GoogleFonts.oswald(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.normal,
+              fontFamily: 'Inter',
+              package: 'floating_logger',
             ),
           ),
         ],
@@ -227,9 +231,11 @@ class _ListPageState extends State<ListPage> {
                                 item.title!,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.montserrat(
+                                style: const TextStyle(
                                   fontSize: 14.0,
                                   fontWeight: FontWeight.bold,
+                                  fontFamily: 'Inter',
+                                  package: 'floating_logger',
                                 ),
                               ),
                               const SizedBox(
@@ -239,9 +245,11 @@ class _ListPageState extends State<ListPage> {
                                 item.description!,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.montserrat(
+                                style: const TextStyle(
                                   fontSize: 12.0,
                                   fontWeight: FontWeight.normal,
+                                  fontFamily: 'Inter',
+                                  package: 'floating_logger',
                                 ),
                               ),
                               const SizedBox(
@@ -255,9 +263,10 @@ class _ListPageState extends State<ListPage> {
                                     '\$${item.price.toString()}',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.montserrat(
+                                    style: const TextStyle(
                                       fontSize: 14.0,
                                       fontWeight: FontWeight.bold,
+                                      fontFamily: 'Inter',
                                     ),
                                   ),
                                   Row(
@@ -266,9 +275,10 @@ class _ListPageState extends State<ListPage> {
                                         item.rating!.rate.toString(),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: GoogleFonts.montserrat(
+                                        style: const TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
+                                          fontFamily: 'Inter',
                                         ),
                                       ),
                                       const Icon(
@@ -381,14 +391,14 @@ class _ListPageState extends State<ListPage> {
             ),
             Text(
               'Fashion',
-              style: GoogleFonts.oswald(
+              style: const TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
               'Get More 20% discount for new user',
-              style: GoogleFonts.oswald(
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
               ),

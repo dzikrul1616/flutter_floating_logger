@@ -1,3 +1,6 @@
+## [2.1.2] - Fonts to asset
+* [fix] Google font to asset 
+
 ## [2.1.1] - PDF & Image Support
 * [new] PDF & Image Support response
 

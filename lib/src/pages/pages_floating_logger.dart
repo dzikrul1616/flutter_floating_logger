@@ -1,6 +1,7 @@
 import 'package:floating_logger/src/network/network_model.dart';
 import 'package:floating_logger/floating_logger.dart';
 import '../widgets/widgets.dart';
+import 'package:flutter/material.dart';
 
 /// A widget that displays a list of logs using a floating logger.
 /// It listens to the logs from `DioLogger` and updates the UI accordingly.
@@ -49,20 +50,24 @@ class PagesFloatingLogger extends StatelessWidget {
           Text(
             "Data Not Found!", // Message when no data is found
             textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.black,
+              fontFamily: 'Inter',
+              package: 'floating_logger',
             ),
           ),
           const SizedBox(height: 10.0),
           Text(
             "You don't have any data yet, please refresh or add data first!", // Suggestion message
             textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.normal,
-              color: Colors.grey[600],
+              color: Colors.grey,
+              fontFamily: 'Inter',
+              package: 'floating_logger',
             ),
           ),
         ],

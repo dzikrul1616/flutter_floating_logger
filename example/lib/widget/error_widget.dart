@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class CustomErrorWidget extends StatelessWidget {
   final String title;
@@ -30,19 +29,23 @@ class CustomErrorWidget extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: GoogleFonts.oswald(
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
+                fontFamily: 'Inter',
+                package: 'floating_logger',
               ),
             ),
             const SizedBox(height: 8),
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: GoogleFonts.montserrat(
+              style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
+                fontFamily: 'Inter',
+                package: 'floating_logger',
               ),
             ),
             if (onRetry != null) ...[
