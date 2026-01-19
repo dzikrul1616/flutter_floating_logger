@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class FloatinLoggerJsonViewer extends StatefulWidget {
   final dynamic jsonObj;
@@ -71,10 +70,12 @@ class _FloatinLoggerJsonViewerState extends State<FloatinLoggerJsonViewer> {
             if (isEmpty) {
               return Text(
                   '"${entry.key}": ${entry.value is List ? '[]' : '{}'},',
-                  style: GoogleFonts.inter(
+                  style: const TextStyle(
                     color: Colors.purple,
                     fontWeight: FontWeight.w500,
                     fontSize: 12,
+                    fontFamily: 'Inter',
+                    package: 'floating_logger',
                   ));
             }
 
@@ -86,10 +87,12 @@ class _FloatinLoggerJsonViewerState extends State<FloatinLoggerJsonViewer> {
               children: [
                 Text(
                   '"${entry.key}": $openBrace',
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
                     color: Colors.purple,
                     fontWeight: FontWeight.w500,
                     fontSize: 12,
+                    fontFamily: 'Inter',
+                    package: 'floating_logger',
                   ),
                 ),
                 Padding(
@@ -98,9 +101,11 @@ class _FloatinLoggerJsonViewerState extends State<FloatinLoggerJsonViewer> {
                 ),
                 Text(
                   closeBrace,
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
                     color: Colors.black, // Default color for braces
                     fontSize: 12,
+                    fontFamily: 'Inter',
+                    package: 'floating_logger',
                   ),
                 ),
               ],
@@ -114,10 +119,12 @@ class _FloatinLoggerJsonViewerState extends State<FloatinLoggerJsonViewer> {
                   children: [
                     TextSpan(
                       text: '"${entry.key}": ',
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
                         color: Colors.purple,
                         fontWeight: FontWeight.w500,
                         fontSize: 12,
+                        fontFamily: 'Inter',
+                        package: 'floating_logger',
                       ),
                     ),
                     _buildPrimitiveSpan(entry.value),
@@ -153,9 +160,10 @@ class _FloatinLoggerJsonViewerState extends State<FloatinLoggerJsonViewer> {
     if (widget.searchQuery.isEmpty) {
       return TextSpan(
         text: text,
-        style: GoogleFonts.inter(
+        style: TextStyle(
           color: content is String ? Colors.green : Colors.blue,
           fontSize: 12,
+          fontFamily: 'Inter',
         ),
       );
     }
@@ -170,19 +178,21 @@ class _FloatinLoggerJsonViewerState extends State<FloatinLoggerJsonViewer> {
       if (index > start) {
         spans.add(TextSpan(
           text: text.substring(start, index),
-          style: GoogleFonts.inter(
+          style: TextStyle(
             color: content is String ? Colors.green : Colors.blue,
             fontSize: 12,
+            fontFamily: 'Inter',
           ),
         ));
       }
       spans.add(TextSpan(
         text: text.substring(index, index + query.length),
-        style: GoogleFonts.inter(
+        style: TextStyle(
           color: Colors.white,
           backgroundColor: Colors.orange,
           fontSize: 12,
           fontWeight: FontWeight.bold,
+          fontFamily: 'Inter',
         ),
       ));
       start = index + query.length;
@@ -192,9 +202,10 @@ class _FloatinLoggerJsonViewerState extends State<FloatinLoggerJsonViewer> {
     if (start < text.length) {
       spans.add(TextSpan(
         text: text.substring(start),
-        style: GoogleFonts.inter(
+        style: TextStyle(
           color: content is String ? Colors.green : Colors.blue,
           fontSize: 12,
+          fontFamily: 'Inter',
         ),
       ));
     }
@@ -259,9 +270,10 @@ class _CollapsibleJsonItemState extends State<_CollapsibleJsonItem> {
       if (widget.searchQuery.isEmpty) {
         return Text(
           text,
-          style: GoogleFonts.inter(
+          style: TextStyle(
             color: widget.content is String ? Colors.green : Colors.blue,
             fontSize: 12,
+            fontFamily: 'Inter',
           ),
         );
       }
@@ -276,19 +288,21 @@ class _CollapsibleJsonItemState extends State<_CollapsibleJsonItem> {
         if (index > start) {
           spans.add(TextSpan(
             text: text.substring(start, index),
-            style: GoogleFonts.inter(
+            style: TextStyle(
               color: widget.content is String ? Colors.green : Colors.blue,
               fontSize: 12,
+              fontFamily: 'Inter',
             ),
           ));
         }
         spans.add(TextSpan(
           text: text.substring(index, index + query.length),
-          style: GoogleFonts.inter(
+          style: TextStyle(
             color: Colors.white,
             backgroundColor: Colors.orange,
             fontSize: 12,
             fontWeight: FontWeight.bold,
+            fontFamily: 'Inter',
           ),
         ));
         start = index + query.length;
@@ -298,9 +312,10 @@ class _CollapsibleJsonItemState extends State<_CollapsibleJsonItem> {
       if (start < text.length) {
         spans.add(TextSpan(
           text: text.substring(start),
-          style: GoogleFonts.inter(
+          style: TextStyle(
             color: widget.content is String ? Colors.green : Colors.blue,
             fontSize: 12,
+            fontFamily: 'Inter',
           ),
         ));
       }
@@ -315,10 +330,11 @@ class _CollapsibleJsonItemState extends State<_CollapsibleJsonItem> {
           padding: const EdgeInsets.symmetric(vertical: 2),
           child: Text(
             '> {${widget.index}},',
-            style: GoogleFonts.inter(
+            style: const TextStyle(
               color: Colors.grey,
               fontWeight: FontWeight.bold,
               fontSize: 12,
+              fontFamily: 'Inter',
             ),
           ),
         ),

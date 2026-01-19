@@ -114,16 +114,20 @@ class _DevelopperModeState extends State<DevelopperMode> {
                             children: [
                               Text(
                                 "Debugger API",
-                                style: GoogleFonts.inter(
+                                style: const TextStyle(
                                   fontSize: 16.0,
                                   fontWeight: FontWeight.bold,
+                                  fontFamily: 'Inter',
+                                  package: 'floating_logger',
                                 ),
                               ),
                               Text(
                                 "Deactivate Floating Debugger",
-                                style: GoogleFonts.inter(
+                                style: const TextStyle(
                                   fontSize: 12.0,
                                   fontWeight: FontWeight.normal,
+                                  fontFamily: 'Inter',
+                                  package: 'floating_logger',
                                 ),
                               ),
                             ],
@@ -144,8 +148,11 @@ class _DevelopperModeState extends State<DevelopperMode> {
                       const Divider(),
                       const SizedBox(height: 10),
                       Text("Network Simulation",
-                          style: GoogleFonts.inter(
-                              fontSize: 16, fontWeight: FontWeight.bold)),
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Inter',
+                              package: 'floating_logger')),
                       Wrap(
                         spacing: 10,
                         children: [

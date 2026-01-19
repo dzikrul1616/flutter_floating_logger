@@ -55,8 +55,10 @@ class _DetailItemState extends State<DetailItem> {
                         padding: const EdgeInsets.all(10),
                         child: Text(
                           "Add To Cart",
-                          style: GoogleFonts.montserrat(
+                          style: const TextStyle(
                             fontSize: 16,
+                            fontFamily: 'Inter',
+                            package: 'floating_logger',
                           ),
                         ),
                       ),
@@ -168,9 +170,11 @@ class _DetailItemState extends State<DetailItem> {
                                           Expanded(
                                             child: Text(
                                               data!.title!,
-                                              style: GoogleFonts.montserrat(
+                                              style: const TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
+                                                fontFamily: 'Inter',
+                                                package: 'floating_logger',
                                               ),
                                             ),
                                           ),
@@ -181,9 +185,11 @@ class _DetailItemState extends State<DetailItem> {
                                             '\$${data!.price.toString()}',
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
-                                            style: GoogleFonts.montserrat(
+                                            style: const TextStyle(
                                               fontSize: 14.0,
                                               fontWeight: FontWeight.w600,
+                                              fontFamily: 'Inter',
+                                              package: 'floating_logger',
                                             ),
                                           ),
                                         ],
@@ -204,9 +210,11 @@ class _DetailItemState extends State<DetailItem> {
                                           ),
                                           child: Text(
                                             data!.category!,
-                                            style: GoogleFonts.montserrat(
+                                            style: const TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w600,
+                                              fontFamily: 'Inter',
+                                              package: 'floating_logger',
                                             ),
                                           ),
                                         ),
@@ -216,9 +224,11 @@ class _DetailItemState extends State<DetailItem> {
                                       ),
                                       Text(
                                         data!.description!,
-                                        style: GoogleFonts.montserrat(
+                                        style: const TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.normal,
+                                          fontFamily: 'Inter',
+                                          package: 'floating_logger',
                                         ),
                                       ),
                                       const SizedBox(
@@ -228,16 +238,19 @@ class _DetailItemState extends State<DetailItem> {
                                         children: [
                                           Text(
                                             "Rating : ",
-                                            style: GoogleFonts.montserrat(
+                                            style: const TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.normal,
+                                              fontFamily: 'Inter',
                                             ),
                                           ),
                                           Text(
                                             "${data!.rating!.rate}",
-                                            style: GoogleFonts.montserrat(
+                                            style: const TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.normal,
+                                              fontFamily: 'Inter',
+                                              package: 'floating_logger',
                                             ),
                                           ),
                                           const Icon(
@@ -246,9 +259,11 @@ class _DetailItemState extends State<DetailItem> {
                                           ),
                                           Text(
                                             "(${data!.rating!.count} Person)",
-                                            style: GoogleFonts.montserrat(
+                                            style: const TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.normal,
+                                              fontFamily: 'Inter',
+                                              package: 'floating_logger',
                                             ),
                                           ),
                                         ],

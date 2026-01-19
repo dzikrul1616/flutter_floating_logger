@@ -217,7 +217,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
       width: 20,
       child: _highlightSubText(
         '${widget.index + 1}. ',
-        GoogleFonts.inter(),
+        const TextStyle(fontFamily: 'Inter', package: 'floating_logger'),
       ),
     );
   }
@@ -262,7 +262,8 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
             Expanded(
               child: _highlightSubText(
                 widget.data.path ?? "",
-                GoogleFonts.inter(fontWeight: FontWeight.bold),
+                const TextStyle(
+                    fontFamily: 'Inter', fontWeight: FontWeight.bold),
               ),
             ),
             Icon(
@@ -351,10 +352,11 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
             statusText,
             softWrap: false,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.inter(
+            style: const TextStyle(
               fontWeight: FontWeight.w600,
               color: Colors.white,
               fontSize: 12,
+              fontFamily: 'Inter',
             ),
           ),
         ),
@@ -464,9 +466,11 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
                     children: [
                       Text(
                         'Image Preview',
-                        style: GoogleFonts.inter(
+                        style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
+                          fontFamily: 'Inter',
+                          package: 'floating_logger',
                         ),
                       ),
                       const Icon(Icons.zoom_in, size: 18, color: Colors.blue),
@@ -483,9 +487,11 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
                           padding: const EdgeInsets.all(16),
                           child: Text(
                             'Failed to load image',
-                            style: GoogleFonts.inter(
+                            style: TextStyle(
                               color: Colors.red,
                               fontSize: 12,
+                              fontFamily: 'Inter',
+                              package: 'floating_logger',
                             ),
                           ),
                         );
@@ -495,9 +501,11 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
                   const SizedBox(height: 4),
                   Text(
                     'Size: ${(binaryData.length / 1024).toStringAsFixed(2)} KB',
-                    style: GoogleFonts.inter(
+                    style: TextStyle(
                       fontSize: 11,
                       color: Colors.grey[600],
+                      fontFamily: 'Inter',
+                      package: 'floating_logger',
                     ),
                   ),
                 ],
@@ -553,18 +561,20 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
                         children: [
                           Text(
                             fileName,
-                            style: GoogleFonts.inter(
+                            style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
+                              fontFamily: 'Inter',
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
                             'Size: ${(binaryData.length / 1024).toStringAsFixed(2)} KB',
-                            style: GoogleFonts.inter(
+                            style: TextStyle(
                               fontSize: 11,
                               color: Colors.grey[600],
+                              fontFamily: 'Inter',
                             ),
                           ),
                         ],
@@ -632,9 +642,10 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.inter(
+                    style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
+                      fontFamily: 'Inter',
                     ),
                   ),
                   GestureDetector(
@@ -656,9 +667,10 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
               ),
               _highlightSubText(
                 data,
-                GoogleFonts.inter(
+                const TextStyle(
                   fontWeight: FontWeight.w400,
                   fontSize: 12,
+                  fontFamily: 'Inter',
                 ),
               ),
             ],
@@ -820,9 +832,11 @@ class _CollapsibleCodeFieldState extends State<_CollapsibleCodeField> {
                     Flexible(
                       child: Text(
                         widget.title,
-                        style: GoogleFonts.inter(
+                        style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
+                          fontFamily: 'Inter',
+                          package: 'floating_logger',
                         ),
                       ),
                     ),
@@ -896,9 +910,10 @@ class _CollapsibleCodeFieldState extends State<_CollapsibleCodeField> {
     // Fallback to text if not JSON or parsing fails
     return _highlightSubText(
       widget.data,
-      GoogleFonts.inter(
+      const TextStyle(
         fontWeight: FontWeight.w400,
         fontSize: 12,
+        fontFamily: 'Inter',
       ),
     );
   }
