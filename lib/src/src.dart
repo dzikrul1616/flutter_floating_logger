@@ -8,5 +8,6 @@ export 'widgets/widgets.dart'
         FloatingLoggerItem,
         FloatingLoggerModalBottomWidgetState,
         FloatinLoggerJsonViewer;
-export 'network/network.dart' hide LogRepository, LogRepositoryModel;
+export 'network/network.dart' hide LogRepository;
 export 'interceptor/interceptor.dart';
+export 'server/server.dart';

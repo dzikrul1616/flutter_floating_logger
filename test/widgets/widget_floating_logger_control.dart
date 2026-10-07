@@ -213,6 +213,40 @@ void widgetFloatingLoggerControlTest() {
     expect(DioLogger.instance.logs.maxLogSize, 50);
   });
 
+  testWidgets('FloatingLoggerControl should configure showConsoleLog',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: FloatingLoggerControl(
+            showConsoleLog: false,
+            child: SizedBox(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(DioLogger.showConsoleLogNotifier.value, false);
+
+    // Update widget with showConsoleLog: true
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: FloatingLoggerControl(
+            showConsoleLog: true,
+            child: SizedBox(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(DioLogger.showConsoleLogNotifier.value, true);
+  });
+
   testWidgets(
       'FloatingLoggerControl should handle timeout in getPreference gracefully',
       (WidgetTester tester) async {

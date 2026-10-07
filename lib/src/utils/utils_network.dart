@@ -75,9 +75,11 @@ class LoggerNetworkSettings {
     final curlCommand =
         FormatLogger.generateCurlCommand(response.requestOptions);
     int? duration;
-    if (response.requestOptions.extra['start_time'] != null) {
-      final startTime = response.requestOptions.extra['start_time'] as int;
-      duration = DateTime.now().millisecondsSinceEpoch - startTime;
+    final rawStartTime = response.requestOptions.extra['start_time'];
+    if (rawStartTime is num) {
+      duration =
+          (DateTime.now().millisecondsSinceEpoch - rawStartTime.toInt())
+              .clamp(0, 9999999);
     }
     if (DioLogger.shouldLogNotifier.value) {
       LoggerLogsData.logMessage<Response<dynamic>>(
@@ -104,9 +106,11 @@ class LoggerNetworkSettings {
   ) {
     final curlCommand = FormatLogger.generateCurlCommand(error.requestOptions);
     int? duration;
-    if (error.requestOptions.extra['start_time'] != null) {
-      final startTime = error.requestOptions.extra['start_time'] as int;
-      duration = DateTime.now().millisecondsSinceEpoch - startTime;
+    final rawStartTime = error.requestOptions.extra['start_time'];
+    if (rawStartTime is num) {
+      duration =
+          (DateTime.now().millisecondsSinceEpoch - rawStartTime.toInt())
+              .clamp(0, 9999999);
     }
     if (DioLogger.shouldLogNotifier.value) {
       LoggerLogsData.logMessage<DioException>(

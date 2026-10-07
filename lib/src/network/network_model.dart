@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:floating_logger/floating_logger.dart'
     show ValueNotifier, Equatable, DioLogger;
@@ -88,6 +89,9 @@ class LogRepositoryModel extends Equatable {
   /// Flag to indicate if this is a binary response (image, PDF, etc.)
   final bool isBinaryResponse;
 
+  /// Flag to indicate if this request/response was simulated / mocked
+  final bool isSimulation;
+
   const LogRepositoryModel({
     this.type,
     this.method,
@@ -103,6 +107,7 @@ class LogRepositoryModel extends Equatable {
     this.binaryData,
     this.contentType,
     this.isBinaryResponse = false,
+    this.isSimulation = false,
   });
 
   /// Factory constructor for creating a log instance from a JSON object.
@@ -119,6 +124,12 @@ class LogRepositoryModel extends Equatable {
       responseTime: json["response_time"],
       message: json["message"] ?? "",
       curl: json["curl"] ?? "",
+      isSimulation: json["is_simulation"] ?? false,
+      isBinaryResponse: json["is_binary"] ?? false,
+      contentType: json["content_type"],
+      binaryData: json["base64_data"] != null
+          ? base64Decode(json["base64_data"] as String)
+          : null,
     );
   }
 
@@ -133,8 +144,13 @@ class LogRepositoryModel extends Equatable {
         "response_data": responseData,
         "path": path,
         "response_time": responseTime,
+        "responseTime": responseTime,
         "message": message,
         "curl": curl,
+        "is_simulation": isSimulation,
+        "is_binary": isBinaryResponse,
+        "content_type": contentType,
+        "base64_data": binaryData != null ? base64Encode(binaryData!) : null,
       };
 
   /// Overrides the `toString` method to format log information as a string.
@@ -160,5 +176,6 @@ class LogRepositoryModel extends Equatable {
         binaryData,
         contentType,
         isBinaryResponse,
+        isSimulation,
       ];
 }

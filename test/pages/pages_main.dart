@@ -1,4 +1,3 @@
-import 'package:floating_logger/src/network/network.dart';
 import 'package:floating_logger/src/pages/pages.dart';
 import 'package:floating_logger/src/widgets/widgets.dart';
 

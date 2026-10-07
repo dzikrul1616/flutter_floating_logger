@@ -70,6 +70,10 @@ class DioLogger with DioMixin implements Dio {
   static final ValueNotifier<bool> shouldLogNotifier =
       ValueNotifier<bool>(true);
 
+  /// Controls whether console/terminal logs are outputted.
+  static final ValueNotifier<bool> showConsoleLogNotifier =
+      ValueNotifier<bool>(true);
+
   /// Provides access to the log repository instance.
   LogRepository get logs => _logRepository;
 

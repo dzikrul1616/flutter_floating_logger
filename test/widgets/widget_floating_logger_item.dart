@@ -1,3 +1,4 @@
+// ignore: unnecessary_import
 import 'package:floating_logger/src/network/network.dart';
 import 'package:floating_logger/src/widgets/widgets.dart';
 import 'package:flutter/services.dart';

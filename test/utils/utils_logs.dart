@@ -1,5 +1,4 @@
 import 'package:floating_logger/src/utils/utils.dart';
-import 'package:floating_logger/src/network/network_model.dart';
 import '../test.dart';
 
 void utilsLogs() {

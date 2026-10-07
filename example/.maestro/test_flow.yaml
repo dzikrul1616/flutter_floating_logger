@@ -1,0 +1,10 @@
+appId: com.example.example
+---
+- launchApp
+- assertVisible: "Floating Logger Package Test"
+- tapOn: "Settings Page"
+- assertVisible: "Developper Test"
+- assertVisible: "Debugger API"
+- tapOn:
+    point: "6%,6%"
+- assertVisible: "Floating Logger Package Test"

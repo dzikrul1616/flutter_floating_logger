@@ -1,10 +1,7 @@
-// ignore_for_file: depend_on_referenced_packages
-
 import 'dart:io';
-
-import 'package:dio/dio.dart';
 import 'package:fake_async/fake_async.dart';
-import 'package:floating_logger/src/utils/utils_simulation.dart';
+import 'package:floating_logger/floating_logger.dart';
+import 'package:floating_logger/src/network/network.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -95,8 +92,32 @@ void main() {
         expect(completed, isTrue);
         expect(caughtException, isNotNull);
         expect(caughtException!.type, DioExceptionType.connectionTimeout);
-        expect(caughtException!.message, 'Connection Timeout (Simulated)');
+        expect(caughtException!.message, contains('Connection Timeout'));
       });
+    });
+
+    test('FloatingLoggerInterceptor records REQ and ERR logs with isSimulation: true', () async {
+      final logRepo = LogRepository();
+      final interceptor = FloatingLoggerInterceptor(logRepository: logRepo);
+      NetworkSimulator.instance.setSimulation(NetworkSimulation.offline);
+
+      final dio = Dio();
+      dio.interceptors.add(interceptor);
+
+      try {
+        await dio.get('https://example.com/api/test_sim');
+      } catch (_) {}
+
+      final logs = logRepo.logsNotifier.value;
+      // Should have 2 logs: ERROR (newest) and REQUEST
+      expect(logs.length, 2);
+      expect(logs[0].type, 'ERROR');
+      expect(logs[0].isSimulation, isTrue);
+      expect(logs[0].response, 'OFFLINE');
+      expect(logs[0].message, contains('Simulated'));
+
+      expect(logs[1].type, 'REQUEST');
+      expect(logs[1].isSimulation, isTrue);
     });
   });
 }

@@ -58,42 +58,46 @@ class NetworkSimulator {
         await Future.delayed(const Duration(seconds: 2));
         break;
       case NetworkSimulation.offline:
-        // Simulate connection error
+        // Real-world offline exception: no server response, only connection error
         throw DioException(
           requestOptions: options,
-          error: 'Simulated Offline Mode',
+          error: 'No Internet Connection (Simulated)',
           type: DioExceptionType.connectionError,
-          message: 'No Internet Connection (Simulated)',
+          message:
+              'The connection errored: No Internet Connection (Simulated Offline Mode)',
         );
       case NetworkSimulation.socketError:
+        // Real-world socket exception: no server response, OS connection refused
         throw DioException(
           requestOptions: options,
-          error: const SocketException('Simulated Socket Exception'),
+          error: const SocketException(
+              'OS Error: Connection refused, errno = 111 (Simulated Socket Error)'),
           type: DioExceptionType.connectionError,
-          message: 'Socket Exception (Simulated)',
+          message:
+              'Failed host lookup / Connection refused (Simulated Socket Error)',
         );
       case NetworkSimulation.serverError:
+        // Server 500 actually responds from the server with 500 status code and error body
         throw DioException(
           requestOptions: options,
           response: Response(
             requestOptions: options,
             statusCode: 500,
-            statusMessage: 'Internal Server Error (Simulated)',
-            data: {'error': 'Simulated Internal Server Error'},
+            statusMessage: 'Internal Server Error',
+            data: {'error': 'Internal Server Error (Simulated)'},
           ),
           type: DioExceptionType.badResponse,
-          message: 'Internal Server Error (Simulated)',
+          message: 'Internal Server Error (Simulated 500)',
         );
       case NetworkSimulation.timeout:
-        // Simulate timeout delay before throwing? Or just throw immediately?
-        // Real timeout waits. I should wait a bit then throw?
-        // User asked for "timeout". Usually implies a wait.
+        // Real-world timeout: no server response, connection timed out after delay
         await Future.delayed(const Duration(seconds: 2));
         throw DioException(
           requestOptions: options,
           type: DioExceptionType.connectionTimeout,
-          message: 'Connection Timeout (Simulated)',
-          error: 'Simulated Timeout',
+          message:
+              'Connection Timeout: The request took longer than 2000ms (Simulated)',
+          error: 'Connection timed out (Simulated)',
         );
     }
   }

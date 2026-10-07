@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../utils/utils_theme.dart';
 
 class FloatinLoggerJsonViewer extends StatefulWidget {
   final dynamic jsonObj;
   final bool initialExpanded;
-
   final String searchQuery;
 
   const FloatinLoggerJsonViewer(
@@ -22,42 +22,95 @@ class FloatinLoggerJsonViewer extends StatefulWidget {
 class _FloatinLoggerJsonViewerState extends State<FloatinLoggerJsonViewer> {
   @override
   Widget build(BuildContext context) {
-    return _buildJsonWidget(widget.jsonObj);
+    final colors = FloatingLoggerTheme.of(context);
+    return _buildJsonWidget(widget.jsonObj, colors);
   }
 
-  Widget _buildJsonWidget(dynamic content) {
+  Widget _buildJsonWidget(dynamic content, FloatingLoggerColors colors) {
     if (content is Map) {
-      if (content.isEmpty) return const Text('{}');
+      if (content.isEmpty) {
+        return Text(
+          '{}',
+          style: TextStyle(
+            color: colors.jsonBraces,
+            fontSize: 12,
+            fontFamily: 'Inter',
+            package: 'floating_logger',
+          ),
+        );
+      }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('{'),
-          Padding(
-            padding: const EdgeInsets.only(left: 10.0), // Reduced spacing
-            child: _buildJsonChildren(content),
+          Text(
+            '{',
+            style: TextStyle(
+              color: colors.jsonBraces,
+              fontSize: 12,
+              fontFamily: 'Inter',
+              package: 'floating_logger',
+            ),
           ),
-          const Text('},'),
+          Padding(
+            padding: const EdgeInsets.only(left: 12.0),
+            child: _buildJsonChildren(content, colors),
+          ),
+          Text(
+            '},',
+            style: TextStyle(
+              color: colors.jsonBraces,
+              fontSize: 12,
+              fontFamily: 'Inter',
+              package: 'floating_logger',
+            ),
+          ),
         ],
       );
     } else if (content is List) {
-      if (content.isEmpty) return const Text('[],');
+      if (content.isEmpty) {
+        return Text(
+          '[],',
+          style: TextStyle(
+            color: colors.jsonBraces,
+            fontSize: 12,
+            fontFamily: 'Inter',
+            package: 'floating_logger',
+          ),
+        );
+      }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('['),
-          Padding(
-            padding: const EdgeInsets.only(left: 10.0), // Reduced spacing
-            child: _buildJsonChildren(content),
+          Text(
+            '[',
+            style: TextStyle(
+              color: colors.jsonBraces,
+              fontSize: 12,
+              fontFamily: 'Inter',
+              package: 'floating_logger',
+            ),
           ),
-          const Text('],'),
+          Padding(
+            padding: const EdgeInsets.only(left: 12.0),
+            child: _buildJsonChildren(content, colors),
+          ),
+          Text(
+            '],',
+            style: TextStyle(
+              color: colors.jsonBraces,
+              fontSize: 12,
+              fontFamily: 'Inter',
+              package: 'floating_logger',
+            ),
+          ),
         ],
       );
     } else {
-      return _buildPrimitive(content);
+      return _buildPrimitive(content, colors);
     }
   }
 
-  Widget _buildJsonChildren(dynamic content) {
+  Widget _buildJsonChildren(dynamic content, FloatingLoggerColors colors) {
     if (content is Map) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,15 +121,33 @@ class _FloatinLoggerJsonViewerState extends State<FloatinLoggerJsonViewer> {
             final isEmpty = (entry.value is Map && entry.value.isEmpty) ||
                 (entry.value is List && entry.value.isEmpty);
             if (isEmpty) {
-              return Text(
-                  '"${entry.key}": ${entry.value is List ? '[]' : '{}'},',
-                  style: const TextStyle(
-                    color: Colors.purple,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12,
-                    fontFamily: 'Inter',
-                    package: 'floating_logger',
-                  ));
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 2.0),
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      _buildHighlightSpan(
+                        '"${entry.key}": ',
+                        TextStyle(
+                          color: colors.jsonKey,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                          fontFamily: 'Inter',
+                          package: 'floating_logger',
+                        ),
+                      ),
+                      TextSpan(
+                        text: entry.value is List ? '[],' : '{},',
+                        style: TextStyle(
+                          color: colors.jsonBraces,
+                          fontSize: 12,
+                          fontFamily: 'Inter',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             }
 
             final openBrace = entry.value is List ? '[' : '{';
@@ -85,24 +156,38 @@ class _FloatinLoggerJsonViewerState extends State<FloatinLoggerJsonViewer> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '"${entry.key}": $openBrace',
-                  style: TextStyle(
-                    color: Colors.purple,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12,
-                    fontFamily: 'Inter',
-                    package: 'floating_logger',
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      _buildHighlightSpan(
+                        '"${entry.key}": ',
+                        TextStyle(
+                          color: colors.jsonKey,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                          fontFamily: 'Inter',
+                          package: 'floating_logger',
+                        ),
+                      ),
+                      TextSpan(
+                        text: openBrace,
+                        style: TextStyle(
+                          color: colors.jsonBraces,
+                          fontSize: 12,
+                          fontFamily: 'Inter',
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(left: 10.0), // Reduced spacing
-                  child: _buildJsonChildren(entry.value),
+                  padding: const EdgeInsets.only(left: 12.0),
+                  child: _buildJsonChildren(entry.value, colors),
                 ),
                 Text(
                   closeBrace,
                   style: TextStyle(
-                    color: Colors.black, // Default color for braces
+                    color: colors.jsonBraces,
                     fontSize: 12,
                     fontFamily: 'Inter',
                     package: 'floating_logger',
@@ -111,23 +196,22 @@ class _FloatinLoggerJsonViewerState extends State<FloatinLoggerJsonViewer> {
               ],
             );
           } else {
-            // Primitive value using RichText for perfect flow
             return Padding(
               padding: const EdgeInsets.only(bottom: 2.0),
               child: Text.rich(
                 TextSpan(
                   children: [
-                    TextSpan(
-                      text: '"${entry.key}": ',
-                      style: TextStyle(
-                        color: Colors.purple,
+                    _buildHighlightSpan(
+                      '"${entry.key}": ',
+                      TextStyle(
+                        color: colors.jsonKey,
                         fontWeight: FontWeight.w500,
                         fontSize: 12,
                         fontFamily: 'Inter',
                         package: 'floating_logger',
                       ),
                     ),
-                    _buildPrimitiveSpan(entry.value),
+                    _buildPrimitiveSpan(entry.value, colors),
                   ],
                 ),
               ),
@@ -151,48 +235,60 @@ class _FloatinLoggerJsonViewerState extends State<FloatinLoggerJsonViewer> {
     return const SizedBox.shrink();
   }
 
-  Widget _buildPrimitive(dynamic content) {
-    return Text.rich(_buildPrimitiveSpan(content));
+  Widget _buildPrimitive(dynamic content, FloatingLoggerColors colors) {
+    return Text.rich(_buildPrimitiveSpan(content, colors));
   }
 
-  TextSpan _buildPrimitiveSpan(dynamic content) {
+  Color _getPrimitiveColor(dynamic content, FloatingLoggerColors colors) {
+    if (content == null) return colors.jsonNull;
+    if (content is String) return colors.jsonString;
+    if (content is num) return colors.jsonNumber;
+    if (content is bool) return colors.jsonBool;
+    return colors.textPrimary;
+  }
+
+  TextSpan _buildPrimitiveSpan(dynamic content, FloatingLoggerColors colors) {
     String text = content is String ? '"$content",' : '$content,';
-    if (widget.searchQuery.isEmpty) {
-      return TextSpan(
-        text: text,
-        style: TextStyle(
-          color: content is String ? Colors.green : Colors.blue,
-          fontSize: 12,
-          fontFamily: 'Inter',
-        ),
-      );
+    final contentColor = _getPrimitiveColor(content, colors);
+
+    return _buildHighlightSpan(
+      text,
+      TextStyle(
+        color: contentColor,
+        fontSize: 12,
+        fontFamily: 'Inter',
+      ),
+    );
+  }
+
+  TextSpan _buildHighlightSpan(String text, TextStyle baseStyle) {
+    if (widget.searchQuery.trim().isEmpty) {
+      return TextSpan(text: text, style: baseStyle);
     }
 
-    final query = widget.searchQuery.toLowerCase();
+    final query = widget.searchQuery.trim().toLowerCase();
     final lowerText = text.toLowerCase();
     final List<TextSpan> spans = [];
     int start = 0;
     int index = lowerText.indexOf(query);
 
+    if (index == -1) {
+      return TextSpan(text: text, style: baseStyle);
+    }
+
     while (index != -1) {
       if (index > start) {
         spans.add(TextSpan(
           text: text.substring(start, index),
-          style: TextStyle(
-            color: content is String ? Colors.green : Colors.blue,
-            fontSize: 12,
-            fontFamily: 'Inter',
-          ),
+          style: baseStyle,
         ));
       }
       spans.add(TextSpan(
         text: text.substring(index, index + query.length),
-        style: TextStyle(
+        style: baseStyle.copyWith(
           color: Colors.white,
           backgroundColor: Colors.orange,
-          fontSize: 12,
           fontWeight: FontWeight.bold,
-          fontFamily: 'Inter',
         ),
       ));
       start = index + query.length;
@@ -202,11 +298,7 @@ class _FloatinLoggerJsonViewerState extends State<FloatinLoggerJsonViewer> {
     if (start < text.length) {
       spans.add(TextSpan(
         text: text.substring(start),
-        style: TextStyle(
-          color: content is String ? Colors.green : Colors.blue,
-          fontSize: 12,
-          fontFamily: 'Inter',
-        ),
+        style: baseStyle,
       ));
     }
 
@@ -218,7 +310,6 @@ class _CollapsibleJsonItem extends StatefulWidget {
   final int index;
   final dynamic content;
   final bool isLast;
-
   final String searchQuery;
 
   const _CollapsibleJsonItem({
@@ -262,16 +353,25 @@ class _CollapsibleJsonItemState extends State<_CollapsibleJsonItem> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = FloatingLoggerTheme.of(context);
+
     if (widget.content is! Map && widget.content is! List) {
       String text = widget.content is String
           ? '"${widget.content}",'
           : '${widget.content},';
+      final contentColor = widget.content is String
+          ? colors.jsonString
+          : widget.content is num
+              ? colors.jsonNumber
+              : widget.content is bool
+                  ? colors.jsonBool
+                  : colors.textPrimary;
 
       if (widget.searchQuery.isEmpty) {
         return Text(
           text,
           style: TextStyle(
-            color: widget.content is String ? Colors.green : Colors.blue,
+            color: contentColor,
             fontSize: 12,
             fontFamily: 'Inter',
           ),
@@ -289,7 +389,7 @@ class _CollapsibleJsonItemState extends State<_CollapsibleJsonItem> {
           spans.add(TextSpan(
             text: text.substring(start, index),
             style: TextStyle(
-              color: widget.content is String ? Colors.green : Colors.blue,
+              color: contentColor,
               fontSize: 12,
               fontFamily: 'Inter',
             ),
@@ -297,7 +397,7 @@ class _CollapsibleJsonItemState extends State<_CollapsibleJsonItem> {
         }
         spans.add(TextSpan(
           text: text.substring(index, index + query.length),
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             backgroundColor: Colors.orange,
             fontSize: 12,
@@ -313,7 +413,7 @@ class _CollapsibleJsonItemState extends State<_CollapsibleJsonItem> {
         spans.add(TextSpan(
           text: text.substring(start),
           style: TextStyle(
-            color: widget.content is String ? Colors.green : Colors.blue,
+            color: contentColor,
             fontSize: 12,
             fontFamily: 'Inter',
           ),
@@ -330,8 +430,8 @@ class _CollapsibleJsonItemState extends State<_CollapsibleJsonItem> {
           padding: const EdgeInsets.symmetric(vertical: 2),
           child: Text(
             '> {${widget.index}},',
-            style: const TextStyle(
-              color: Colors.grey,
+            style: TextStyle(
+              color: colors.textSecondary,
               fontWeight: FontWeight.bold,
               fontSize: 12,
               fontFamily: 'Inter',
@@ -344,12 +444,12 @@ class _CollapsibleJsonItemState extends State<_CollapsibleJsonItem> {
         children: [
           InkWell(
             onTap: () => setState(() => _isExpanded = false),
-            child: const Padding(
-              padding: EdgeInsets.only(right: 4.0),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 4.0),
               child: Icon(
                 Icons.arrow_drop_down,
                 size: 16,
-                color: Colors.grey,
+                color: colors.textSecondary,
               ),
             ),
           ),
