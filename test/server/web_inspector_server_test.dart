@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:floating_logger/floating_logger.dart';
@@ -115,14 +116,25 @@ void main() {
     test('WebSocket /ws connects and receives live log broadcasts', () async {
       await HttpOverrides.runWithHttpOverrides(() async {
         await server.start(port: 29993);
+        final port = server.currentPort ?? 29993;
 
-        final ws = await WebSocket.connect('ws://127.0.0.1:29993/ws');
+        final ws = await WebSocket.connect('ws://127.0.0.1:$port/ws');
         expect(ws.readyState, WebSocket.open);
 
+        // Wait until server has accepted and added the client to _clients
+        for (int i = 0; i < 50; i++) {
+          if (server.clientsCount > 0) break;
+          await Future.delayed(const Duration(milliseconds: 20));
+        }
+
+        final completer = Completer<void>();
         final receivedLogs = <Map<String, dynamic>>[];
         ws.listen((event) {
           final data = jsonDecode(event as String) as Map<String, dynamic>;
           receivedLogs.add(data);
+          if (!completer.isCompleted) {
+            completer.complete();
+          }
         });
 
         // Add a log to trigger broadcast
@@ -135,8 +147,11 @@ void main() {
           ),
         );
 
-        // Give a moment for loopback WebSocket event
-        await Future.delayed(const Duration(milliseconds: 100));
+        // Await incoming message with reasonable timeout for CI
+        await completer.future.timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {},
+        );
 
         expect(receivedLogs.length, 1);
         expect(receivedLogs.first['path'], '/api/v1/live_test');

@@ -35,6 +35,9 @@ class WebInspectorServer {
   @visibleForTesting
   static bool simulateInternalError = false;
 
+  @visibleForTesting
+  int get clientsCount => _clients.length;
+
   /// Default port used for Web Inspector (21616 avoids common port conflicts).
   static const int defaultPort = 21616;
 
