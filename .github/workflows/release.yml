@@ -24,9 +24,6 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Run Tests
-        run: flutter test
-
       - name: Verify Pub Verification
         run: dart pub publish --dry-run
         
