@@ -27,6 +27,19 @@ void networkModel() {
       expect(log.curl, "curl -X GET https://example.com");
     });
 
+    test('LogRepositoryModel should decode base64_data if present', () {
+      final json = {
+        "type": "GET",
+        "is_binary": true,
+        "base64_data": "SGVsbG8gV29ybGQ=",
+        "content_type": "text/plain",
+      };
+      final log = LogRepositoryModel.fromJson(json);
+      expect(log.isBinaryResponse, true);
+      expect(log.binaryData, isNotNull);
+      expect(String.fromCharCodes(log.binaryData!), "Hello World");
+    });
+
     test('LogRepositoryModel should convert to JSON correctly', () {
       final log = LogRepositoryModel(
         type: "POST",

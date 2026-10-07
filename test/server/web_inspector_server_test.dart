@@ -159,5 +159,144 @@ void main() {
 
       await busyServer.close();
     });
+
+    test('OPTIONS request returns OK with CORS headers', () async {
+      await HttpOverrides.runWithHttpOverrides(() async {
+        await server.start(port: 29997);
+        final client = HttpClient();
+
+        final req = await client.openUrl('OPTIONS', Uri.parse('http://127.0.0.1:29997/api/logs'));
+        final res = await req.close();
+
+        expect(res.statusCode, HttpStatus.ok);
+        expect(res.headers.value('Access-Control-Allow-Origin'), '*');
+        client.close();
+      }, _AllowAllHttpOverrides());
+    });
+
+    test('Non-upgrade request to /ws returns 400 Bad Request', () async {
+      await HttpOverrides.runWithHttpOverrides(() async {
+        await server.start(port: 29998);
+        final client = HttpClient();
+
+        final req = await client.getUrl(Uri.parse('http://127.0.0.1:29998/ws'));
+        final res = await req.close();
+
+        expect(res.statusCode, HttpStatus.badRequest);
+        client.close();
+      }, _AllowAllHttpOverrides());
+    });
+
+    test('Request to unknown path returns 404 Not Found', () async {
+      await HttpOverrides.runWithHttpOverrides(() async {
+        await server.start(port: 29999);
+        final client = HttpClient();
+
+        final req = await client.getUrl(Uri.parse('http://127.0.0.1:29999/unknown_route'));
+        final res = await req.close();
+
+        expect(res.statusCode, HttpStatus.notFound);
+        client.close();
+      }, _AllowAllHttpOverrides());
+    });
+
+    test('Simulated internal error returns 500 Internal Server Error', () async {
+      await HttpOverrides.runWithHttpOverrides(() async {
+        await server.start(port: 30000);
+        WebInspectorServer.simulateInternalError = true;
+        final client = HttpClient();
+
+        try {
+          final req = await client.getUrl(Uri.parse('http://127.0.0.1:30000/api/logs'));
+          final res = await req.close();
+          expect(res.statusCode, HttpStatus.internalServerError);
+        } finally {
+          WebInspectorServer.simulateInternalError = false;
+          client.close();
+        }
+      }, _AllowAllHttpOverrides());
+    });
+
+    test('Toggle starts the server when it is not running', () async {
+      expect(server.isRunningNotifier.value, isFalse);
+      final toggledOn = await server.toggle(port: 29988);
+      expect(toggledOn, isTrue);
+      expect(server.isRunningNotifier.value, isTrue);
+      await server.stop();
+    });
+
+    test('Device info branches cover simulator and emulator combinations', () {
+      // 1. iOS simulator with full env
+      final iosInfo = server.getDeviceInfoForTesting(
+        isIOS: true,
+        isAndroid: false,
+        envOverride: {
+          'SIMULATOR_DEVICE_NAME': 'iPhone 15 Pro',
+          'SIMULATOR_RUNTIME_VERSION': '17.4',
+        },
+        hostnameOverride: 'my-mac.local',
+        osVersionOverride: 'Version 17.4',
+      );
+      expect(iosInfo['is_simulator'], isTrue);
+      expect(iosInfo['device_name'], 'iPhone 15 Pro (Simulator)');
+      expect(iosInfo['os_version'], 'iOS 17.4');
+
+      // 2. iOS simulator with fallback name/version
+      final iosFallback = server.getDeviceInfoForTesting(
+        isIOS: true,
+        isAndroid: false,
+        envOverride: {
+          'SIMULATOR_HOST_HOME': '/Users/someone',
+        },
+        hostnameOverride: 'some-host',
+        osVersionOverride: '17.0',
+      );
+      expect(iosFallback['is_simulator'], isTrue);
+      expect(iosFallback['device_name'], 'iPhone (Simulator)');
+      expect(iosFallback['os_version'], 'iOS Simulator');
+
+      // 3. iOS simulator detected by hostname containing 'mac' or ending with '.local'
+      final iosByHost = server.getDeviceInfoForTesting(
+        isIOS: true,
+        isAndroid: false,
+        envOverride: {},
+        hostnameOverride: 'dzikrul-mac',
+      );
+      expect(iosByHost['is_simulator'], isTrue);
+
+      // 4. Android emulator
+      final androidInfo = server.getDeviceInfoForTesting(
+        isIOS: false,
+        isAndroid: true,
+        envOverride: {},
+        hostnameOverride: 'generic_x86_arm',
+        osVersionOverride: '14.0',
+      );
+      expect(androidInfo['is_simulator'], isTrue);
+      expect(androidInfo['device_name'], 'Android Emulator');
+      expect(androidInfo['os_version'], 'Android 14.0');
+
+      // 5. Android emulator matching 'emulator'
+      final androidEmulator = server.getDeviceInfoForTesting(
+        isIOS: false,
+        isAndroid: true,
+        envOverride: {},
+        hostnameOverride: 'my-emulator',
+        osVersionOverride: '13.0',
+      );
+      expect(androidEmulator['is_simulator'], isTrue);
+
+      // 6. Regular device (non-simulator)
+      final regularInfo = server.getDeviceInfoForTesting(
+        isIOS: false,
+        isAndroid: false,
+        envOverride: {},
+        hostnameOverride: 'real-device',
+        osVersionOverride: '1.0',
+      );
+      expect(regularInfo['is_simulator'], isFalse);
+      expect(regularInfo['device_name'], 'real-device');
+    });
   });
 }
+

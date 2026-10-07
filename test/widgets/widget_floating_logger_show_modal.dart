@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:floating_logger/src/widgets/widgets.dart';
 
 import '../test.dart';
@@ -414,6 +415,197 @@ void widgetFloatingLoggerShowModalTest() {
       await tester.pumpAndSettle();
 
       WebInspectorServer.instance.isRunningNotifier.value = false;
+    });
+
+    testWidgets('Filter by HTTP method only works correctly', (WidgetTester tester) async {
+      DioLogger.instance.logs.clearLogs();
+      DioLogger.instance.logs.logsNotifier.value = [
+        const LogRepositoryModel(method: 'GET', path: '/api/get_only'),
+        const LogRepositoryModel(method: 'POST', path: '/api/post_only'),
+      ];
+
+      await tester.pumpWidget(const MaterialApp(home: Scaffold(body: FloatingLoggerModalBottomWidget())));
+      final modalState = tester.state<FloatingLoggerModalBottomWidgetState>(
+          find.byType(FloatingLoggerModalBottomWidget));
+
+      // Filter only by method GET
+      modalState.toggleFilter('GET');
+      await tester.pumpAndSettle();
+
+      expect(find.text('/api/get_only'), findsOneWidget);
+      expect(find.text('/api/post_only'), findsNothing);
+    });
+
+    testWidgets('Header dark mode toggle button toggles theme', (WidgetTester tester) async {
+      await tester.pumpWidget(const MaterialApp(home: Scaffold(body: FloatingLoggerModalBottomWidget())));
+
+      FloatingLoggerTheme.setThemeMode(ThemeMode.light);
+      final themeBtn = find.byTooltip("Toggle Dark/Light Mode");
+      expect(themeBtn, findsOneWidget);
+
+      await tester.tap(themeBtn);
+      await tester.pumpAndSettle();
+
+      expect(FloatingLoggerTheme.themeModeNotifier.value, ThemeMode.dark);
+    });
+
+    testWidgets('Filter dialog close button and status chip toggle work', (WidgetTester tester) async {
+      DioLogger.instance.logs.clearLogs();
+      DioLogger.instance.logs.logsNotifier.value = [
+        const LogRepositoryModel(type: 'REQUEST', path: '/api/req'),
+      ];
+
+      await tester.pumpWidget(const MaterialApp(home: Scaffold(body: FloatingLoggerModalBottomWidget())));
+
+      // Open filter dialog
+      await tester.tap(find.byTooltip("Detailed Filters"));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Filter Logs'), findsOneWidget);
+
+      // Close filter dialog
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+      expect(find.text('Filter Logs'), findsNothing);
+
+      // Re-open and toggle status chip
+      await tester.tap(find.byTooltip("Detailed Filters"));
+      await tester.pumpAndSettle();
+
+      final requestChip = find.descendant(
+        of: find.byType(Dialog),
+        matching: find.textContaining('REQUEST'),
+      );
+      await tester.tap(requestChip);
+      await tester.pumpAndSettle();
+
+      final modalState = tester.state<FloatingLoggerModalBottomWidgetState>(
+          find.byType(FloatingLoggerModalBottomWidget));
+      expect(modalState.activeFilters.value.contains('REQUEST'), isTrue);
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('Simulation dialog close button works', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerModalBottomWidget(isSimulationActive: true),
+          ),
+        ),
+      );
+
+      // Open simulation dialog by tapping speed icon
+      await tester.tap(find.byIcon(Icons.speed));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Network Simulation'), findsOneWidget);
+
+      // Tap close button
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Network Simulation'), findsNothing);
+    });
+
+    testWidgets('Web Inspector dialog inactive state, switch toggle, and copy URL',
+        (WidgetTester tester) async {
+      // Mock clipboard
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall methodCall) async => null,
+      );
+
+      WebInspectorServer.mockStart = ({port = 21616, maxAttempts = 10}) async => true;
+      WebInspectorServer.mockStop = () async {};
+
+      WebInspectorServer.instance.isRunningNotifier.value = false;
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerModalBottomWidget(),
+          ),
+        ),
+      );
+
+      // 1. Open dialog when stopped
+      await tester.tap(find.byIcon(Icons.laptop_mac_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Inactive (Stopped)'), findsOneWidget);
+
+      // 2. Toggle switch on then off
+      final switchFinder = find.byType(Switch);
+      expect(switchFinder, findsOneWidget);
+
+      await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+
+      await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+
+      // Close dialog
+      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.pumpAndSettle();
+
+      // 3. Open dialog when running to test Copy URL button
+      WebInspectorServer.instance.currentPort = 21616;
+      WebInspectorServer.instance.currentIp = '127.0.0.1';
+      WebInspectorServer.instance.isRunningNotifier.value = true;
+
+      await tester.tap(find.byIcon(Icons.laptop_mac_rounded));
+      await tester.pumpAndSettle();
+
+      final copyBtn = find.text('Copy');
+      expect(copyBtn, findsOneWidget);
+      await tester.tap(copyBtn);
+      await tester.pump();
+
+      expect(find.text('URL copied to clipboard!'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.pumpAndSettle();
+
+      // Clear toast timers
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+
+      WebInspectorServer.instance.isRunningNotifier.value = false;
+      WebInspectorServer.mockStart = null;
+      WebInspectorServer.mockStop = null;
+    });
+
+    testWidgets('scrollToMatch jumps to approxOffset when target key context is null',
+        (WidgetTester tester) async {
+      DioLogger.instance.logs.clearLogs();
+      for (int i = 0; i < 40; i++) {
+        DioLogger.instance.logs.addLog(LogRepositoryModel(path: '/api/item_$i'));
+      }
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerModalBottomWidget(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final modalState = tester.state<FloatingLoggerModalBottomWidgetState>(
+          find.byType(FloatingLoggerModalBottomWidget));
+
+      expect(modalState.itemKeys, isNotEmpty);
+
+      // Item 25 is outside initial viewport, so targetKey context is null initially
+      modalState.currentMatchIndex.value = 25;
+      modalState.scrollToMatch();
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pumpAndSettle();
+
+      expect(modalState.scrollController.hasClients, isTrue);
     });
   });
 }

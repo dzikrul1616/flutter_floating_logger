@@ -52,7 +52,7 @@ class DeveloperControlsWidget extends StatelessWidget {
                     ),
                     Switch(
                       value: provider.isLoggerVisible,
-                      activeThumbColor: const Color(0xFF3B82F6),
+                      activeColor: const Color(0xFF3B82F6),
                       onChanged: (val) => provider.toggleLoggerVisibility(val),
                     ),
                   ],
@@ -89,7 +89,7 @@ class DeveloperControlsWidget extends StatelessWidget {
                     ),
                     Switch(
                       value: provider.showConsoleLog,
-                      activeThumbColor: const Color(0xFF3B82F6),
+                      activeColor: const Color(0xFF3B82F6),
                       onChanged: (val) => provider.toggleConsoleLog(val),
                     ),
                   ],
@@ -115,7 +115,7 @@ class DeveloperControlsWidget extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
+                            color: const Color(0xFF3B82F6).withOpacity(0.12),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(

@@ -73,15 +73,13 @@ class FloatingLoggerInterceptor extends InterceptorsWrapper {
       } on DioException catch (e) {
         logSimError(e);
         handler.reject(e);
-      } catch (e) {
-        final dioErr = DioException(requestOptions: options, error: e);
-        logSimError(dioErr);
-        handler.reject(dioErr);
       }
-    } on DioException catch (e) {
-      handler.reject(e);
     } catch (e) {
-      handler.reject(DioException(requestOptions: options, error: e));
+      handler.reject(
+        e is DioException
+            ? e
+            : DioException(requestOptions: options, error: e),
+      );
     }
   }
 

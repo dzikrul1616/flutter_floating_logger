@@ -78,7 +78,7 @@ class DeveloperSimulationWidget extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isSelected
-                  ? item.color.withValues(alpha: 0.12)
+                  ? item.color.withOpacity(0.12)
                   : (isDark ? const Color(0xFF1E1E2E) : Colors.white),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
@@ -93,7 +93,7 @@ class DeveloperSimulationWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: item.color.withValues(alpha: 0.15),
+                    color: item.color.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(item.icon, color: item.color, size: 20),

@@ -18,10 +18,10 @@ class GuideTipsWidget extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF3B82F6).withValues(alpha: isDark ? 0.15 : 0.08),
+        color: const Color(0xFF3B82F6).withOpacity(isDark ? 0.15 : 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+          color: const Color(0xFF3B82F6).withOpacity(0.3),
         ),
       ),
       child: Row(

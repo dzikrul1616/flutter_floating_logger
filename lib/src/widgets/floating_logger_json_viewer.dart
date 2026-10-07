@@ -347,8 +347,12 @@ class _CollapsibleJsonItemState extends State<_CollapsibleJsonItem> {
 
   bool _containsSearch(String query) {
     final q = query.toLowerCase();
-    final contentStr = jsonEncode(widget.content).toLowerCase();
-    return contentStr.contains(q);
+    try {
+      final contentStr = jsonEncode(widget.content).toLowerCase();
+      return contentStr.contains(q);
+    } catch (_) {
+      return widget.content.toString().toLowerCase().contains(q);
+    }
   }
 
   @override

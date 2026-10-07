@@ -1,3 +1,10 @@
+## [2.1.3] - Web Inspector & UI Improvements
+* [new] Web inspector: view logs via browser over local IP & hostname
+* [update] Modern UI redesign & dark mode support
+* [update] Action handler logger with debug console integration
+* [fix] Crash on page navigation
+* [fix] Filter error handling
+
 ## [2.1.2] - Fonts to asset
 * [fix] Google font to asset 
 

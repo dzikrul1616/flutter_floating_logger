@@ -87,7 +87,7 @@ class HomeQuickActionsWidget extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                     decoration: BoxDecoration(
-                      color: item.color.withValues(alpha: 0.15),
+                      color: item.color.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(

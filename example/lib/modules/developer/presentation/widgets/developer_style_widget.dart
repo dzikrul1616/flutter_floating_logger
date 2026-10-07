@@ -101,7 +101,7 @@ class DeveloperStyleWidget extends StatelessWidget {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: color.withValues(alpha: 0.4),
+                                color: color.withOpacity(0.4),
                                 blurRadius: 8,
                                 offset: const Offset(0, 3),
                               ),
@@ -134,7 +134,7 @@ class DeveloperStyleWidget extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: provider.floatingButtonColor.withValues(alpha: 0.4),
+                          color: provider.floatingButtonColor.withOpacity(0.4),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),

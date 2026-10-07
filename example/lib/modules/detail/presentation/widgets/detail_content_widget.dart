@@ -45,7 +45,7 @@ class DetailContentWidget extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFBBF24).withValues(alpha: 0.15),
+                        color: const Color(0xFFFBBF24).withOpacity(0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(

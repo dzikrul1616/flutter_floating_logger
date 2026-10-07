@@ -38,7 +38,7 @@ class DeveloperInspectorWidget extends StatelessWidget {
                             color: (isRunning
                                     ? const Color(0xFF10B981)
                                     : const Color(0xFF3B82F6))
-                                .withValues(alpha: 0.15),
+                                .withOpacity(0.15),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
@@ -100,10 +100,10 @@ class DeveloperInspectorWidget extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                      color: const Color(0xFF10B981).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                        color: const Color(0xFF10B981).withOpacity(0.3),
                       ),
                     ),
                     child: Column(
@@ -201,7 +201,7 @@ class DeveloperInspectorWidget extends StatelessWidget {
             width: 18,
             height: 18,
             decoration: BoxDecoration(
-              color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+              color: const Color(0xFF3B82F6).withOpacity(0.15),
               shape: BoxShape.circle,
             ),
             child: Center(

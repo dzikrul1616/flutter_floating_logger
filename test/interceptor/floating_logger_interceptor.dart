@@ -1,3 +1,4 @@
+import 'dart:collection';
 import '../test.dart';
 
 void floatingLoggerInterceptor() {
@@ -80,5 +81,53 @@ void floatingLoggerInterceptor() {
       await Future.delayed(const Duration(milliseconds: 100));
       verify(handler.next(options)).called(1);
     });
+
+    test('should reject request and log simulation error when simulated error occurs', () async {
+      NetworkSimulator.instance.setSimulation(NetworkSimulation.offline);
+      final options = RequestOptions(path: '/test_sim_error', extra: {'start_time': 1000});
+
+      interceptor.onRequest(options, mockRequestHandler);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      verify(mockRequestHandler.reject(any)).called(1);
+      NetworkSimulator.instance.setSimulation(NetworkSimulation.normal);
+    });
+
+    test('should reject request when error thrown before simulation', () async {
+      final options = RequestOptions(path: '/test_throw');
+      options.extra = _ThrowingExtraMap(Exception('Generic failure'));
+
+      interceptor.onRequest(options, mockRequestHandler);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      verify(mockRequestHandler.reject(any)).called(1);
+    });
+
+    test('should reject request when DioException thrown before simulation', () async {
+      final options = RequestOptions(path: '/test_throw_dio');
+      options.extra = _ThrowingExtraMap(DioException(requestOptions: options));
+
+      interceptor.onRequest(options, mockRequestHandler);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      verify(mockRequestHandler.reject(any)).called(1);
+    });
   });
 }
+
+class _ThrowingExtraMap extends MapBase<String, dynamic> {
+  final Object errorToThrow;
+  _ThrowingExtraMap(this.errorToThrow);
+
+  @override
+  operator [](Object? key) => throw errorToThrow;
+  @override
+  void operator []=(String key, value) => throw errorToThrow;
+  @override
+  void clear() {}
+  @override
+  Iterable<String> get keys => [];
+  @override
+  dynamic remove(Object? key) => null;
+}
+

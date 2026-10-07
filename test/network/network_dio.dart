@@ -23,6 +23,8 @@ void networkDio() {
     late MockErrorInterceptorHandler mockErrorHandler;
     setUp(() {
       NetworkSimulator.instance.setSimulation(NetworkSimulation.normal);
+      DioLogger.instance.logs.clearLogs();
+      DioLogger.instance.logs.maxLogSize = 30;
       dioLogger = DioLogger.instance;
       mockDio = MockDioLogger();
       mockLogRepository = MockLogRepository();

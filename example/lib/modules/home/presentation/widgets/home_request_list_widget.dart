@@ -101,7 +101,7 @@ class HomeRequestListWidget extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.02),
+                  color: Colors.black.withOpacity(isDark ? 0.15 : 0.02),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -116,7 +116,7 @@ class HomeRequestListWidget extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: item.methodColor.withValues(alpha: 0.12),
+                        color: item.methodColor.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(item.icon, color: item.methodColor, size: 20),
@@ -132,7 +132,7 @@ class HomeRequestListWidget extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: item.methodColor.withValues(alpha: 0.15),
+                                  color: item.methodColor.withOpacity(0.15),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -209,8 +209,8 @@ class HomeRequestListWidget extends StatelessWidget {
                                 horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: result.isSuccess
-                                  ? const Color(0xFF16A34A).withValues(alpha: 0.12)
-                                  : const Color(0xFFEF4444).withValues(alpha: 0.12),
+                                  ? const Color(0xFF16A34A).withOpacity(0.12)
+                                  : const Color(0xFFEF4444).withOpacity(0.12),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Row(

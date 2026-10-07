@@ -49,7 +49,7 @@ class HomeStatusCardWidget extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -65,7 +65,7 @@ class HomeStatusCardWidget extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(7),
                       decoration: BoxDecoration(
-                        color: simColor.withValues(alpha: 0.15),
+                        color: simColor.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(simIcon, color: simColor, size: 18),
@@ -110,7 +110,7 @@ class HomeStatusCardWidget extends StatelessWidget {
                         color: (provider.isInspectorRunning
                                 ? const Color(0xFF10B981)
                                 : const Color(0xFF64748B))
-                            .withValues(alpha: 0.15),
+                            .withOpacity(0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
@@ -154,7 +154,7 @@ class HomeStatusCardWidget extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
+                  color: const Color(0xFF3B82F6).withOpacity(0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -179,9 +179,9 @@ class HomeStatusCardWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                color: const Color(0xFF10B981).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+                border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
               ),
               child: Row(
                 children: [

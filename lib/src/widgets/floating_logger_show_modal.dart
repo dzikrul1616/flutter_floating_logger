@@ -33,6 +33,9 @@ class FloatingLoggerModalBottomWidgetState
   final ValueNotifier<int> currentMatchIndex = ValueNotifier(0);
   final Map<int, GlobalKey> _itemKeys = {};
 
+  @visibleForTesting
+  Map<int, GlobalKey> get itemKeys => _itemKeys;
+
   void toggleFilter(String type) {
     activeFilters.value = {
       ...activeFilters.value.contains(type)
@@ -348,9 +351,10 @@ class FloatingLoggerModalBottomWidgetState
 
   void _scrollToMatch() {
     final index = currentMatchIndex.value;
-    final targetKey = _itemKeys[index];
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final targetKey = _itemKeys[index];
       if (targetKey?.currentContext != null) {
         Scrollable.ensureVisible(
           targetKey!.currentContext!,
@@ -366,6 +370,7 @@ class FloatingLoggerModalBottomWidgetState
         scrollController.jumpTo(approxOffset.clamp(0.0, maxScroll));
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
           final retryKey = _itemKeys[index];
           if (retryKey?.currentContext != null) {
             Scrollable.ensureVisible(
@@ -379,6 +384,9 @@ class FloatingLoggerModalBottomWidgetState
       }
     });
   }
+
+  @visibleForTesting
+  void scrollToMatch() => _scrollToMatch();
 
   Widget _buildHeader(
     List<LogRepositoryModel> logs,

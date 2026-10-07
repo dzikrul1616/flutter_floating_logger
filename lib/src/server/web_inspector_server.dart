@@ -26,6 +26,15 @@ class WebInspectorServer {
   /// Notifier for server running state.
   final ValueNotifier<bool> isRunningNotifier = ValueNotifier<bool>(false);
 
+  @visibleForTesting
+  static Future<bool> Function({int port, int maxAttempts})? mockStart;
+
+  @visibleForTesting
+  static Future<void> Function()? mockStop;
+
+  @visibleForTesting
+  static bool simulateInternalError = false;
+
   /// Default port used for Web Inspector (21616 avoids common port conflicts).
   static const int defaultPort = 21616;
 
@@ -59,6 +68,16 @@ class WebInspectorServer {
   /// - [port]: The starting port (default: `21616`).
   /// - [maxAttempts]: Number of consecutive ports to try if [port] is busy.
   Future<bool> start({int port = defaultPort, int maxAttempts = 10}) async {
+    if (mockStart != null) {
+      final res = await mockStart!(port: port, maxAttempts: maxAttempts);
+      isRunningNotifier.value = res;
+      if (res) {
+        currentPort = port;
+        currentIp = '127.0.0.1';
+      }
+      return res;
+    }
+
     if (isRunningNotifier.value) return true;
 
     HttpServer? boundServer;
@@ -77,6 +96,7 @@ class WebInspectorServer {
 
     if (boundServer == null) return false;
 
+    boundServer.idleTimeout = null;
     _server = boundServer;
     currentPort = attemptPort;
     currentIp = await getLocalIpAddress() ?? 'localhost';
@@ -91,6 +111,13 @@ class WebInspectorServer {
 
   /// Stops the Web Inspector server and disconnects active clients.
   Future<void> stop() async {
+    if (mockStop != null) {
+      await mockStop!();
+      isRunningNotifier.value = false;
+      currentPort = null;
+      return;
+    }
+
     DioLogger.instance.logs.logsNotifier.removeListener(_onLogsChanged);
 
     for (final client in _clients.toList()) {
@@ -147,14 +174,17 @@ class WebInspectorServer {
 
           final path = request.uri.path;
 
+          if (simulateInternalError) {
+            throw Exception('Simulated Internal Error');
+          }
+
           if (path == '/ws') {
             if (WebSocketTransformer.isUpgradeRequest(request)) {
               final socket = await WebSocketTransformer.upgrade(request);
               _clients.add(socket);
               socket.listen(
-                (_) {},
+                null,
                 onDone: () => _clients.remove(socket),
-                onError: (_) => _clients.remove(socket),
               );
             } else {
               request.response.statusCode = HttpStatus.badRequest;
@@ -186,29 +216,35 @@ class WebInspectorServer {
           } catch (_) {}
         }
       },
-      onError: (_) {},
-      cancelOnError: false,
     );
   }
 
-  Map<String, dynamic> _getDeviceInfo() {
-    final env = Platform.environment;
-    final isIOS = Platform.isIOS;
-    final isAndroid = Platform.isAndroid;
+  Map<String, dynamic> _getDeviceInfo({
+    bool? isIOS,
+    bool? isAndroid,
+    Map<String, String>? envOverride,
+    String? hostnameOverride,
+    String? osVersionOverride,
+  }) {
+    final env = envOverride ?? Platform.environment;
+    final isIOSVal = isIOS ?? Platform.isIOS;
+    final isAndroidVal = isAndroid ?? Platform.isAndroid;
+    final localHostname = hostnameOverride ?? Platform.localHostname;
+    final rawOsVersion = osVersionOverride ?? Platform.operatingSystemVersion;
 
-    final isIosSimulator = isIOS &&
+    final isIosSimulator = isIOSVal &&
         (env.containsKey('SIMULATOR_DEVICE_NAME') ||
             env.containsKey('SIMULATOR_MODEL_IDENTIFIER') ||
             env.containsKey('SIMULATOR_HOST_HOME') ||
-            Platform.localHostname.endsWith('.local') ||
-            Platform.localHostname.toLowerCase().contains('mac'));
+            localHostname.endsWith('.local') ||
+            localHostname.toLowerCase().contains('mac'));
 
-    final isAndroidEmulator = isAndroid &&
-        (Platform.localHostname.toLowerCase().contains('generic') ||
-            Platform.localHostname.toLowerCase().contains('emulator'));
+    final isAndroidEmulator = isAndroidVal &&
+        (localHostname.toLowerCase().contains('generic') ||
+            localHostname.toLowerCase().contains('emulator'));
 
-    String deviceName = Platform.localHostname;
-    String osVersion = Platform.operatingSystemVersion;
+    String deviceName = localHostname;
+    String osVersion = rawOsVersion;
 
     if (isIosSimulator) {
       if (env.containsKey('SIMULATOR_DEVICE_NAME') &&
@@ -226,7 +262,7 @@ class WebInspectorServer {
       }
     } else if (isAndroidEmulator) {
       deviceName = 'Android Emulator';
-      osVersion = 'Android ${Platform.operatingSystemVersion}';
+      osVersion = 'Android $rawOsVersion';
     }
 
     return {
@@ -234,11 +270,27 @@ class WebInspectorServer {
       'is_simulator': isIosSimulator || isAndroidEmulator,
       'device_name': deviceName,
       'os_version': osVersion,
-      'raw_os_version': Platform.operatingSystemVersion,
-      'hostname': Platform.localHostname,
+      'raw_os_version': rawOsVersion,
+      'hostname': localHostname,
       'processors': Platform.numberOfProcessors,
       'dart_version': Platform.version.split(' ').first,
       'locale': Platform.localeName,
     };
   }
+
+  @visibleForTesting
+  Map<String, dynamic> getDeviceInfoForTesting({
+    bool? isIOS,
+    bool? isAndroid,
+    Map<String, String>? envOverride,
+    String? hostnameOverride,
+    String? osVersionOverride,
+  }) =>
+      _getDeviceInfo(
+        isIOS: isIOS,
+        isAndroid: isAndroid,
+        envOverride: envOverride,
+        hostnameOverride: hostnameOverride,
+        osVersionOverride: osVersionOverride,
+      );
 }

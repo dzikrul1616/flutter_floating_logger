@@ -41,7 +41,7 @@ class HomeHeaderWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                      color: const Color(0xFF3B82F6).withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -72,12 +72,12 @@ class HomeHeaderWidget extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                          color: const Color(0xFF10B981).withOpacity(0.15),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
+                          border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4)),
                         ),
                         child: const Text(
-                          'v2.1.2',
+                          'v2.1.3',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,

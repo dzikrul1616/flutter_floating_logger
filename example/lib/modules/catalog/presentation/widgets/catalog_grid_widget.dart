@@ -140,7 +140,7 @@ class CatalogGridWidget extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
@@ -181,11 +181,11 @@ class CatalogGridWidget extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.all(5),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.9),
+                                color: Colors.white.withOpacity(0.9),
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
+                                    color: Colors.black.withOpacity(0.1),
                                     blurRadius: 4,
                                   ),
                                 ],

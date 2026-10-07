@@ -102,8 +102,7 @@ class FloatingLoggerColors {
 }
 
 /// Theme manager for Floating Logger to guarantee complete theme isolation.
-class FloatingLoggerTheme {
-  FloatingLoggerTheme._();
+abstract class FloatingLoggerTheme {
 
   /// Reactive notifier for the active theme mode.
   static final ValueNotifier<ThemeMode> themeModeNotifier =
