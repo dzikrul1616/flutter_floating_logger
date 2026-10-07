@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'utils.dart';
 import 'dart:developer';
-import 'package:floating_logger/src/network/network_model.dart';
+import 'package:floating_logger/src/network/network.dart';
 
 /// Class for handling logging of information related to Dio requests, responses, and exceptions.
 class LoggerLogsData {
@@ -19,11 +19,31 @@ class LoggerLogsData {
   /// Retrieves the HTTP status code from the given data.
   /// Supports `Response` and `DioException`. Returns "Request" for `RequestOptions`.
   static String? getStatusCode<T>(T data) {
-    if (data is Response<dynamic>) return data.statusCode.toString();
+    if (data is Response<dynamic>) return data.statusCode?.toString();
     if (data is DioException) {
-      return data.response?.statusCode == null
-          ? "Could not get status"
-          : data.response?.statusCode.toString();
+      if (data.response?.statusCode != null && data.response!.statusCode != 0) {
+        return data.response!.statusCode.toString();
+      }
+      switch (data.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          return "TIMEOUT";
+        case DioExceptionType.connectionError:
+          final errStr =
+              '${data.message ?? ""} ${data.error ?? ""}'.toLowerCase();
+          if (errStr.contains('offline') || errStr.contains('internet')) {
+            return "OFFLINE";
+          }
+          if (errStr.contains('socket')) {
+            return "SOCKET_ERR";
+          }
+          return "CONN_ERR";
+        case DioExceptionType.cancel:
+          return "CANCELLED";
+        default:
+          return "Could not get status";
+      }
     }
     return 'REQUEST'; // Default for RequestOptions
   }
@@ -161,6 +181,7 @@ class LoggerLogsData {
     String curlCommand, {
     String name = "Log",
     int? duration,
+    bool isSimulation = false,
   }) {
     // Extract individual log components from the data
     final method = getMethod(data);
@@ -170,6 +191,22 @@ class LoggerLogsData {
     final headers = _getHeaders(data);
     final param = _getParam(data);
     final message = getMessage(data);
+
+    // Detect if simulation from request options extra
+    bool effectiveIsSimulation = isSimulation;
+    if (!effectiveIsSimulation) {
+      try {
+        if (data is RequestOptions && data.extra['is_simulation'] == true) {
+          effectiveIsSimulation = true;
+        } else if (data is Response &&
+            data.requestOptions.extra['is_simulation'] == true) {
+          effectiveIsSimulation = true;
+        } else if (data is DioException &&
+            data.requestOptions.extra['is_simulation'] == true) {
+          effectiveIsSimulation = true;
+        }
+      } catch (_) {}
+    }
 
     // Detect binary responses early for console log optimization
     final contentType = _getContentType(data);
@@ -197,11 +234,13 @@ class LoggerLogsData {
         "${color}Headers :\n${AnsiColor.reset}${FormatLogger.parseJson(headers)}\n"
         "${color}Curl    :${AnsiColor.reset} $curlCommand";
 
-    // Log the message using Dart's `log` function
-    log(
-      logMessage,
-      name: name,
-    );
+    // Log the message using Dart's `log` function if console logging is enabled
+    if (DioLogger.showConsoleLogNotifier.value) {
+      log(
+        logMessage,
+        name: name,
+      );
+    }
 
     // Save the request or response message on state before show in ui
     logRepository.addLog(
@@ -225,6 +264,7 @@ class LoggerLogsData {
         binaryData: binaryData,
         contentType: contentType,
         isBinaryResponse: isBinary,
+        isSimulation: effectiveIsSimulation,
       ),
     );
   }

@@ -9,4 +9,5 @@ void main() {
   WidgetsTestMain.main();
   NetworkTestMain.main();
   InterceptorTestMain.main();
+  ServerTestMain.main();
 }

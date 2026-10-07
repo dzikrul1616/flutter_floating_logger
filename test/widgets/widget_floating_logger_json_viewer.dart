@@ -393,6 +393,32 @@ void widgetFloatingLoggerJsonViewerTest() {
           .widget<AnimatedCrossFade>(find.byType(AnimatedCrossFade).first);
       expect(crossFadeAfter.crossFadeState, CrossFadeState.showSecond);
     });
+
+    testWidgets('renders boolean and custom object primitives correctly',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const FloatinLoggerJsonViewer(true),
+                  const FloatinLoggerJsonViewer({'flag': false}),
+                  FloatinLoggerJsonViewer(DateTime(2025, 1, 1)),
+                  const FloatinLoggerJsonViewer({'flag': true}, searchQuery: 'true'),
+                  FloatinLoggerJsonViewer([true, false, DateTime(2025, 1, 1)]),
+                  FloatinLoggerJsonViewer([true, false, DateTime(2025, 1, 1)], searchQuery: 'true'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('true,'), findsWidgets);
+      expect(find.textContaining('"flag": false,'), findsOneWidget);
+    });
   });
 }
 

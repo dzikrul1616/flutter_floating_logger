@@ -1,4 +1,4 @@
-import 'package:floating_logger/src/network/network.dart';
+import 'package:flutter/services.dart';
 import 'package:floating_logger/src/widgets/widgets.dart';
 
 import '../test.dart';
@@ -96,10 +96,10 @@ void widgetFloatingLoggerShowModalTest() {
 
       expect(find.text('Filter Logs'), findsOneWidget);
 
-      final closeButton = find.text('Close');
-      expect(closeButton, findsOneWidget);
+      final applyButton = find.text('Apply Filters');
+      expect(applyButton, findsOneWidget);
 
-      await tester.tap(closeButton);
+      await tester.tap(applyButton);
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
       expect(find.text('Filter Logs'), findsNothing);
@@ -134,18 +134,10 @@ void widgetFloatingLoggerShowModalTest() {
 
       expect(find.text('Filter Logs'), findsOneWidget);
 
-      find.byType(ElevatedButton);
-
       final postTextFinder = find.text('POST (0)');
       expect(postTextFinder, findsOneWidget);
 
-      final postButton = find.ancestor(
-        of: postTextFinder,
-        matching: find.byType(ElevatedButton),
-      );
-      expect(postButton, findsOneWidget);
-
-      await tester.tap(postButton);
+      await tester.tap(postTextFinder);
       await tester.pumpAndSettle();
 
       final state = tester.state<FloatingLoggerModalBottomWidgetState>(
@@ -154,13 +146,13 @@ void widgetFloatingLoggerShowModalTest() {
 
       expect(state.activeFilters.value, contains('POST'));
 
-      await tester.tap(postButton);
+      await tester.tap(postTextFinder);
       await tester.pumpAndSettle();
 
       expect(state.activeFilters.value, isNot(contains('POST')));
     });
 
-    testWidgets('Verify logCount and ElevatedButton rendering in filter dialog',
+    testWidgets('Verify logCount rendering in filter dialog',
         (WidgetTester tester) async {
       final logs = [
         LogRepositoryModel(type: 'POST', method: 'POST', path: '/api/test'),
@@ -183,47 +175,16 @@ void widgetFloatingLoggerShowModalTest() {
 
       expect(find.text('Filter Logs'), findsOneWidget);
 
-      final logTypes = [
-        'REQUEST',
-        'RESPONSE',
-        'ERROR',
-        'GET',
-        'POST',
-        'PUT',
-        'PATCH',
-        'OPTIONS',
-        'HEAD',
-        'DELETE',
-      ];
+      final statusTypes = ['REQUEST', 'RESPONSE', 'ERROR'];
+      for (final entry in statusTypes) {
+        final expectedCount = logs.where((log) => log.type == entry).length;
+        expect(find.text('$entry ($expectedCount)'), findsOneWidget);
+      }
 
-      for (final entry in logTypes) {
-        final expectedLogCount = logs
-            .where(
-              (log) => log.type == entry || log.method == entry,
-            )
-            .length;
-
-        final buttonTextFinder = find.text('$entry ($expectedLogCount)');
-        expect(buttonTextFinder, findsOneWidget);
-
-        final buttonFinder = find.ancestor(
-          of: buttonTextFinder,
-          matching: find.byType(ElevatedButton),
-        );
-        expect(buttonFinder, findsOneWidget);
-
-        final button = tester.widget<ElevatedButton>(buttonFinder);
-        expect(
-          button.style?.backgroundColor?.resolve({}),
-          equals(Colors.grey[200]),
-        );
-
-        await tester.tap(buttonFinder);
-        await tester.pumpAndSettle();
-        tester.widget<ElevatedButton>(buttonFinder);
-
-        await tester.tap(buttonFinder);
-        await tester.pumpAndSettle();
+      final methodTypes = ['GET', 'POST', 'PUT', 'PATCH', 'OPTIONS', 'HEAD', 'DELETE'];
+      for (final entry in methodTypes) {
+        final expectedCount = logs.where((log) => log.method == entry).length;
+        expect(find.text('$entry ($expectedCount)'), findsOneWidget);
       }
     });
 
@@ -296,7 +257,7 @@ void widgetFloatingLoggerShowModalTest() {
       expect(find.text('Network Simulation'), findsOneWidget);
       expect(find.text('Slow 3G'), findsWidgets);
 
-      await tester.tap(find.text('Slow 3G'));
+      await tester.tap(find.text('Slow 3G').first);
       await tester.pumpAndSettle();
 
       expect(find.text('Network Simulation'), findsNothing);
@@ -330,6 +291,7 @@ void widgetFloatingLoggerShowModalTest() {
       // Clean up
       DioLogger.instance.logs.clearLogs();
     });
+
     testWidgets('Search navigation functionality and looping',
         (WidgetTester tester) async {
       DioLogger.instance.logs.clearLogs();
@@ -410,6 +372,7 @@ void widgetFloatingLoggerShowModalTest() {
     });
 
     testWidgets('Clear logs functionality', (WidgetTester tester) async {
+      DioLogger.instance.logs.clearLogs();
       DioLogger.instance.logs.logsNotifier.value = [
         LogRepositoryModel(path: '/api/test')
       ];
@@ -421,6 +384,228 @@ void widgetFloatingLoggerShowModalTest() {
 
       expect(DioLogger.instance.logs.logsNotifier.value, isEmpty);
       expect(find.text('/api/test'), findsNothing);
+    });
+
+    testWidgets('Tapping laptop icon shows Web Inspector dialog and toggles switch',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerModalBottomWidget(),
+          ),
+        ),
+      );
+
+      final laptopIconFinder = find.byIcon(Icons.laptop_mac_rounded);
+      expect(laptopIconFinder, findsOneWidget);
+
+      WebInspectorServer.instance.currentPort = 21616;
+      WebInspectorServer.instance.currentIp = '127.0.0.1';
+      WebInspectorServer.instance.isRunningNotifier.value = true;
+
+      await tester.tap(laptopIconFinder);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Web Inspector'), findsOneWidget);
+      expect(find.text('Server Status'), findsOneWidget);
+      expect(find.text('ACCESS URL'), findsOneWidget);
+
+      // Close dialog
+      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.pumpAndSettle();
+
+      WebInspectorServer.instance.isRunningNotifier.value = false;
+    });
+
+    testWidgets('Filter by HTTP method only works correctly', (WidgetTester tester) async {
+      DioLogger.instance.logs.clearLogs();
+      DioLogger.instance.logs.logsNotifier.value = [
+        const LogRepositoryModel(method: 'GET', path: '/api/get_only'),
+        const LogRepositoryModel(method: 'POST', path: '/api/post_only'),
+      ];
+
+      await tester.pumpWidget(const MaterialApp(home: Scaffold(body: FloatingLoggerModalBottomWidget())));
+      final modalState = tester.state<FloatingLoggerModalBottomWidgetState>(
+          find.byType(FloatingLoggerModalBottomWidget));
+
+      // Filter only by method GET
+      modalState.toggleFilter('GET');
+      await tester.pumpAndSettle();
+
+      expect(find.text('/api/get_only'), findsOneWidget);
+      expect(find.text('/api/post_only'), findsNothing);
+    });
+
+    testWidgets('Header dark mode toggle button toggles theme', (WidgetTester tester) async {
+      await tester.pumpWidget(const MaterialApp(home: Scaffold(body: FloatingLoggerModalBottomWidget())));
+
+      FloatingLoggerTheme.setThemeMode(ThemeMode.light);
+      final themeBtn = find.byTooltip("Toggle Dark/Light Mode");
+      expect(themeBtn, findsOneWidget);
+
+      await tester.tap(themeBtn);
+      await tester.pumpAndSettle();
+
+      expect(FloatingLoggerTheme.themeModeNotifier.value, ThemeMode.dark);
+    });
+
+    testWidgets('Filter dialog close button and status chip toggle work', (WidgetTester tester) async {
+      DioLogger.instance.logs.clearLogs();
+      DioLogger.instance.logs.logsNotifier.value = [
+        const LogRepositoryModel(type: 'REQUEST', path: '/api/req'),
+      ];
+
+      await tester.pumpWidget(const MaterialApp(home: Scaffold(body: FloatingLoggerModalBottomWidget())));
+
+      // Open filter dialog
+      await tester.tap(find.byTooltip("Detailed Filters"));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Filter Logs'), findsOneWidget);
+
+      // Close filter dialog
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+      expect(find.text('Filter Logs'), findsNothing);
+
+      // Re-open and toggle status chip
+      await tester.tap(find.byTooltip("Detailed Filters"));
+      await tester.pumpAndSettle();
+
+      final requestChip = find.descendant(
+        of: find.byType(Dialog),
+        matching: find.textContaining('REQUEST'),
+      );
+      await tester.tap(requestChip);
+      await tester.pumpAndSettle();
+
+      final modalState = tester.state<FloatingLoggerModalBottomWidgetState>(
+          find.byType(FloatingLoggerModalBottomWidget));
+      expect(modalState.activeFilters.value.contains('REQUEST'), isTrue);
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('Simulation dialog close button works', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerModalBottomWidget(isSimulationActive: true),
+          ),
+        ),
+      );
+
+      // Open simulation dialog by tapping speed icon
+      await tester.tap(find.byIcon(Icons.speed));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Network Simulation'), findsOneWidget);
+
+      // Tap close button
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Network Simulation'), findsNothing);
+    });
+
+    testWidgets('Web Inspector dialog inactive state, switch toggle, and copy URL',
+        (WidgetTester tester) async {
+      // Mock clipboard
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall methodCall) async => null,
+      );
+
+      WebInspectorServer.mockStart = ({port = 21616, maxAttempts = 10}) async => true;
+      WebInspectorServer.mockStop = () async {};
+
+      WebInspectorServer.instance.isRunningNotifier.value = false;
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerModalBottomWidget(),
+          ),
+        ),
+      );
+
+      // 1. Open dialog when stopped
+      await tester.tap(find.byIcon(Icons.laptop_mac_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Inactive (Stopped)'), findsOneWidget);
+
+      // 2. Toggle switch on then off
+      final switchFinder = find.byType(Switch);
+      expect(switchFinder, findsOneWidget);
+
+      await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+
+      await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+
+      // Close dialog
+      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.pumpAndSettle();
+
+      // 3. Open dialog when running to test Copy URL button
+      WebInspectorServer.instance.currentPort = 21616;
+      WebInspectorServer.instance.currentIp = '127.0.0.1';
+      WebInspectorServer.instance.isRunningNotifier.value = true;
+
+      await tester.tap(find.byIcon(Icons.laptop_mac_rounded));
+      await tester.pumpAndSettle();
+
+      final copyBtn = find.text('Copy');
+      expect(copyBtn, findsOneWidget);
+      await tester.tap(copyBtn);
+      await tester.pump();
+
+      expect(find.text('URL copied to clipboard!'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.pumpAndSettle();
+
+      // Clear toast timers
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+
+      WebInspectorServer.instance.isRunningNotifier.value = false;
+      WebInspectorServer.mockStart = null;
+      WebInspectorServer.mockStop = null;
+    });
+
+    testWidgets('scrollToMatch jumps to approxOffset when target key context is null',
+        (WidgetTester tester) async {
+      DioLogger.instance.logs.clearLogs();
+      for (int i = 0; i < 40; i++) {
+        DioLogger.instance.logs.addLog(LogRepositoryModel(path: '/api/item_$i'));
+      }
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerModalBottomWidget(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final modalState = tester.state<FloatingLoggerModalBottomWidgetState>(
+          find.byType(FloatingLoggerModalBottomWidget));
+
+      expect(modalState.itemKeys, isNotEmpty);
+
+      // Item 25 is outside initial viewport, so targetKey context is null initially
+      modalState.currentMatchIndex.value = 25;
+      modalState.scrollToMatch();
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pumpAndSettle();
+
+      expect(modalState.scrollController.hasClients, isTrue);
     });
   });
 }

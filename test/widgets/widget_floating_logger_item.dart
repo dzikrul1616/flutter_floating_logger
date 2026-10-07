@@ -1,3 +1,4 @@
+// ignore: unnecessary_import
 import 'package:floating_logger/src/network/network.dart';
 import 'package:floating_logger/src/widgets/widgets.dart';
 import 'package:flutter/services.dart';
@@ -852,6 +853,132 @@ void widgetFloatingLoggerItemTest() {
       }
 
       expect(find.text('Failed to load image'), findsOneWidget);
+    });
+
+    testWidgets('Should render SIMULATION label when log isSimulation is true',
+        (WidgetTester tester) async {
+      final logData = const LogRepositoryModel(
+        type: 'RESPONSE',
+        method: 'GET',
+        path: '/api/simulated',
+        response: '200',
+        isSimulation: true,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerItem(
+              data: logData,
+              index: 0,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('SIMULATION'), findsOneWidget);
+    });
+
+    testWidgets('copyResponseToClipboard handles empty and populated response data',
+        (WidgetTester tester) async {
+      setupMockClipboard(tester);
+
+      // Case 1: Empty response data
+      final emptyLog = const LogRepositoryModel(
+        type: 'REQUEST',
+        method: 'GET',
+        path: '/api/empty',
+        responseData: '',
+        data: '',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(builder: (context) {
+              return FloatingLoggerItem(
+                data: emptyLog,
+                index: 0,
+              );
+            }),
+          ),
+        ),
+      );
+
+      final stateEmpty = tester.state(find.byType(FloatingLoggerItem)) as dynamic;
+      final BuildContext itemContext = tester.element(find.byType(FloatingLoggerItem));
+      stateEmpty.copyResponseToClipboard(itemContext);
+      await tester.pump(const Duration(seconds: 3));
+
+      // Case 2: Populated response data
+      final populatedLog = const LogRepositoryModel(
+        type: 'RESPONSE',
+        method: 'POST',
+        path: '/api/populated',
+        responseData: '{"success":true}',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(builder: (context) {
+              return FloatingLoggerItem(
+                data: populatedLog,
+                index: 0,
+              );
+            }),
+          ),
+        ),
+      );
+
+      final statePopulated = tester.state(find.byType(FloatingLoggerItem)) as dynamic;
+      final BuildContext populatedContext = tester.element(find.byType(FloatingLoggerItem));
+      statePopulated.copyResponseToClipboard(populatedContext);
+      await tester.pump(const Duration(seconds: 3));
+    });
+
+    testWidgets('_CollapsibleCodeField expands automatically when updated with matching searchQuery',
+        (WidgetTester tester) async {
+      final logData = const LogRepositoryModel(
+        type: 'RESPONSE',
+        method: 'GET',
+        path: '/api/test_query',
+        response: '200',
+        header: 'Custom-Header-Value-Foo',
+      );
+
+      // Initially collapsed search query
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerItem(
+              data: logData,
+              index: 0,
+              searchQuery: '',
+            ),
+          ),
+        ),
+      );
+
+      // Tap to expand item details so _CollapsibleCodeField is mounted
+      await tester.tap(find.byType(FloatingLoggerItem));
+      await tester.pumpAndSettle();
+
+      // Now update widget with matching search query
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FloatingLoggerItem(
+              data: logData,
+              index: 0,
+              searchQuery: 'Custom-Header',
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Custom-Header-Value-Foo'), findsOneWidget);
     });
   });
 }

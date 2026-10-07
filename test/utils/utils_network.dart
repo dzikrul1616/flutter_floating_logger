@@ -1,4 +1,3 @@
-import 'package:floating_logger/src/network/network.dart';
 import 'package:floating_logger/src/utils/utils.dart';
 import '../test.dart';
 

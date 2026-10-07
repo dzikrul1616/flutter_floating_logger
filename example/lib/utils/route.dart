@@ -1,9 +1,4 @@
-import 'package:floating_logger/floating_logger.dart';
-import 'preferences.dart';
-import '../pages/detail_item.dart';
-import '../pages/home_page.dart';
-import '../pages/list_page.dart';
-import '../pages/developper_page.dart';
+import 'package:example/core/packages/packages.dart';
 
 class RouteGenerator {
   static MaterialPageRoute<dynamic> pageRoute(
@@ -25,35 +20,44 @@ class RouteGenerator {
   ) {
     final args = settings.arguments;
     switch (settings.name) {
-      case MyHomePage.routeName:
+      case HomePage.routeName:
+      case '/':
         return pageRoute(
-          const MyHomePage(),
+          const HomePage(),
         );
-      case ListPage.routeName:
+
+      case CatalogPage.routeName:
         return pageRoute(
-          const ListPage(),
+          const CatalogPage(),
         );
-      case DetailItem.routeName:
+
+      case DetailPage.routeName:
         if (args is DetailModel) {
           return pageRoute(
-            DetailItem(
+            DetailPage(
               param: args,
             ),
           );
         }
-        return MaterialPageRoute(builder: (context) {
-          return const MyHomePage();
-        });
-      case DevelopperMode.routeName:
         return pageRoute(
-          const DevelopperMode(),
+          const HomePage(),
+        );
+
+      case DeveloperPage.routeName:
+        return pageRoute(
+          const DeveloperPage(),
           isWithoutTest: true,
         );
 
+      case GuidePage.routeName:
+        return pageRoute(
+          const GuidePage(),
+        );
+
       default:
-        return MaterialPageRoute(builder: (context) {
-          return const MyHomePage();
-        });
+        return pageRoute(
+          const HomePage(),
+        );
     }
   }
 }

@@ -1,7 +1,5 @@
-import 'package:floating_logger/src/network/network_model.dart';
 import 'package:floating_logger/floating_logger.dart';
 import '../widgets/widgets.dart';
-import 'package:flutter/material.dart';
 
 /// A widget that displays a list of logs using a floating logger.
 /// It listens to the logs from `DioLogger` and updates the UI accordingly.
@@ -14,6 +12,7 @@ class PagesFloatingLogger extends StatelessWidget {
     this.searchQuery = "",
     this.activeMatchIndex = -1,
     this.scrollController,
+    this.itemKeys,
   });
 
   /// A function that allows custom rendering of each log item.
@@ -25,49 +24,56 @@ class PagesFloatingLogger extends StatelessWidget {
   final String searchQuery;
   final int activeMatchIndex;
   final ScrollController? scrollController;
+  final Map<int, GlobalKey>? itemKeys;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: logsFiltered!.isEmpty
-          ? _buildEmptyState(context) // Display empty state when no logs exist
+      child: (logsFiltered == null || logsFiltered!.isEmpty)
+          ? _buildEmptyState(context)
           : _buildLogList(logsFiltered!),
     );
   }
 
   /// Builds a widget for an empty state when no logs are available.
   Widget _buildEmptyState(BuildContext context) {
+    final colors = FloatingLoggerTheme.of(context);
+
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.data_array,
-            size: 40,
+            size: 48,
+            color: colors.textSecondary.withOpacity(0.6),
           ),
           const SizedBox(height: 15),
           Text(
-            "Data Not Found!", // Message when no data is found
+            "Data Not Found!",
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: colors.textPrimary,
               fontFamily: 'Inter',
               package: 'floating_logger',
             ),
           ),
-          const SizedBox(height: 10.0),
-          Text(
-            "You don't have any data yet, please refresh or add data first!", // Suggestion message
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.normal,
-              color: Colors.grey,
-              fontFamily: 'Inter',
-              package: 'floating_logger',
+          const SizedBox(height: 8.0),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Text(
+              "You don't have any matching logs yet, make API calls or clear filters!",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.normal,
+                color: colors.textSecondary,
+                fontFamily: 'Inter',
+                package: 'floating_logger',
+              ),
             ),
           ),
         ],
@@ -79,25 +85,31 @@ class PagesFloatingLogger extends StatelessWidget {
   Widget _buildLogList(List<LogRepositoryModel> logs) {
     return ListView.builder(
       controller: scrollController,
-      itemCount: logsFiltered!.length, // Number of logs to display
-      shrinkWrap: true, // Allows flexible sizing
-      physics: const ScrollPhysics(), // Standard scroll behavior
+      padding: const EdgeInsets.only(top: 8, bottom: 40),
+      itemCount: logs.length,
+      shrinkWrap: true,
+      physics: const BouncingScrollPhysics(),
       itemBuilder: (context, index) {
-        return _buildLogItem(index, logsFiltered!);
+        return _buildLogItem(index, logs);
       },
     );
   }
 
   /// Builds a single log item based on its index and data.
   Widget _buildLogItem(int index, List<LogRepositoryModel> logs) {
-    return FloatingLoggerItem(
-      index: index,
-      data: logs[index],
-      searchQuery: searchQuery,
-      isActive: index == activeMatchIndex,
-      child: widgetItemBuilder == null
-          ? null // If no custom builder is provided, use default display
-          : widgetItemBuilder!(index, logs),
+    final key = itemKeys != null ? itemKeys![index] : null;
+    return Container(
+      key: key,
+      margin: const EdgeInsets.only(bottom: 2),
+      child: FloatingLoggerItem(
+        index: index,
+        data: logs[index],
+        searchQuery: searchQuery,
+        isActive: index == activeMatchIndex,
+        child: widgetItemBuilder == null
+            ? null
+            : widgetItemBuilder!(index, logs),
+      ),
     );
   }
 }

@@ -6,5 +6,6 @@ class UtilsTestMain {
     utilsStyle();
     utilsFormat();
     utilsNetwork();
+    utilsThemeTest();
   }
 }

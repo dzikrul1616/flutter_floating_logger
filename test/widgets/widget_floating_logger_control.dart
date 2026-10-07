@@ -213,6 +213,40 @@ void widgetFloatingLoggerControlTest() {
     expect(DioLogger.instance.logs.maxLogSize, 50);
   });
 
+  testWidgets('FloatingLoggerControl should configure showConsoleLog',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: FloatingLoggerControl(
+            showConsoleLog: false,
+            child: SizedBox(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(DioLogger.showConsoleLogNotifier.value, false);
+
+    // Update widget with showConsoleLog: true
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: FloatingLoggerControl(
+            showConsoleLog: true,
+            child: SizedBox(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(DioLogger.showConsoleLogNotifier.value, true);
+  });
+
   testWidgets(
       'FloatingLoggerControl should handle timeout in getPreference gracefully',
       (WidgetTester tester) async {
@@ -337,5 +371,82 @@ void widgetFloatingLoggerControlTest() {
 
     // Should not throw any errors about setState after dispose
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('FloatingLoggerControl reactive visibility change and didUpdateWidget updates',
+      (WidgetTester tester) async {
+    final notifierA = ValueNotifier<bool>(true);
+    final notifierB = ValueNotifier<bool>(false);
+
+    // Initial render with notifierA
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: FloatingLoggerControl(
+            isShow: notifierA,
+            maxLogSize: 10,
+            style: const FloatingLoggerStyle(tooltip: 'A'),
+            child: const SizedBox(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(FloatingActionButton), findsOneWidget);
+
+    // 1. Trigger _onVisibilityChanged by mutating notifierA value
+    notifierA.value = false;
+    await tester.pump();
+    expect(find.byType(FloatingActionButton), findsNothing);
+
+    notifierA.value = true;
+    await tester.pump();
+    expect(find.byType(FloatingActionButton), findsOneWidget);
+
+    // 2. didUpdateWidget: change isShow to notifierB, maxLogSize, style
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: FloatingLoggerControl(
+            isShow: notifierB,
+            maxLogSize: 25,
+            style: const FloatingLoggerStyle(tooltip: 'B'),
+            child: const SizedBox(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(DioLogger.instance.logs.maxLogSize, 25);
+    expect(find.byType(FloatingActionButton), findsNothing);
+  });
+
+  testWidgets('FloatingLoggerControl renders orange simulation badge when network simulation is active',
+      (WidgetTester tester) async {
+    NetworkSimulator.instance.setSimulation(NetworkSimulation.slow3g);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: FloatingLoggerControl(
+            child: SizedBox(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // The simulation badge has width: 14, height: 14
+    final badgeContainers = find.byWidgetPredicate((widget) {
+      if (widget is Container && widget.constraints != null) {
+        return widget.constraints!.maxWidth == 14 && widget.constraints!.maxHeight == 14;
+      }
+      return false;
+    });
+
+    expect(badgeContainers, findsOneWidget);
+
+    NetworkSimulator.instance.setSimulation(NetworkSimulation.normal);
   });
 }

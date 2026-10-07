@@ -91,3 +91,15 @@ class Rating extends Equatable {
         count,
       ];
 }
+
+class DetailModel {
+  const DetailModel({
+    required this.id,
+    this.off,
+    this.item,
+  });
+
+  final int id;
+  final dynamic off;
+  final ListData? item;
+}

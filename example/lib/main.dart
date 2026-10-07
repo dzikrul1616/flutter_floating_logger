@@ -1,54 +1,12 @@
-import 'package:floating_logger/floating_logger.dart';
-import 'pages/home_page.dart';
-import 'utils/route.dart';
+import 'package:example/core/packages/packages.dart';
 
 void main() async {
-  /// Example to add List custom interceptor
-  // DioLogger.instance.addInterceptor(
-  //   InterceptorsWrapper(
-  //     onResponse: (response, handler) {
-  //       // add interceptor condition
-  //       if (kDebugMode) {
-  //         print('Custom onResponse interceptor');
-  //       }
-  //       handler.next(response);
-  //     },
-  //     onError: (error, handler) {
-  //       // add interceptor condition
-  //       if (kDebugMode) {
-  //         print('Custom onError interceptor');
-  //       }
-  //       handler.next(error);
-  //     },
-  //   ),
-  // );
+  WidgetsFlutterBinding.ensureInitialized();
 
-  /// Example to add List custom interceptor
-  // DioLogger.instance.addListInterceptor(
-  //   [
-  //     InterceptorsWrapper(
-  //       onResponse: (response, handler) {
-  //         // add interceptor condition
-  //         if (kDebugMode) {
-  //           print('Custom onResponse interceptor');
-  //         }
-  //         handler.next(response);
-  //       },
-  //       onError: (error, handler) {
-  //         // add interceptor condition
-  //         if (kDebugMode) {
-  //           print('Custom onError interceptor');
-  //         }
-  //         handler.next(error);
-  //       },
-  //     ),
+  // Detect local IP address asynchronously for Web Inspector
+  WebInspectorServer.getLocalIpAddress();
 
-  //     /// Another interception
-  //   ],
-  // );
-  runApp(
-    const MyApp(),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -56,31 +14,37 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Floating Logger',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      initialRoute: MyHomePage.routeName,
-      onGenerateRoute: RouteGenerator.generateRoute,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: FloatingLoggerTheme.themeModeNotifier,
+      builder: (context, themeMode, _) {
+        return MaterialApp(
+          title: 'Flutter Floating Logger',
+          debugShowCheckedModeBanner: false,
+          themeMode: themeMode,
+          theme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.light,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF3B82F6),
+              brightness: Brightness.light,
+            ),
+            scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+            fontFamily: 'Inter',
+          ),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.dark,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF3B82F6),
+              brightness: Brightness.dark,
+            ),
+            scaffoldBackgroundColor: const Color(0xFF181825),
+            fontFamily: 'Inter',
+          ),
+          initialRoute: HomePage.routeName,
+          onGenerateRoute: RouteGenerator.generateRoute,
+        );
+      },
     );
   }
 }
-
-/// Example
-// FloatingLoggerControl(
-//    child: page,
-// ),
-
-/// need using DioLogger
-// final response = await DioLogger.instance.get(
-//         'https://api.genderize.io',
-//         options: Options(headers: {
-//           "content-type": "application/json",
-//         }),
-//         queryParameters: {
-//           "name": "james",
-//         },
-//       );

@@ -1,5 +1,4 @@
 import 'package:floating_logger/src/utils/utils.dart';
-import 'package:floating_logger/src/network/network_model.dart';
 import '../test.dart';
 
 void utilsLogs() {
@@ -264,6 +263,17 @@ void utilsLogs() {
 
       final statusCode = LoggerLogsData.getStatusCode(dioException);
       expect(statusCode, 'Could not get status');
+    });
+
+    test('getStatusCode should return SOCKET_ERR when connectionError contains socket', () {
+      final dioException = DioException(
+        requestOptions: RequestOptions(method: 'GET', path: 'https://example.com'),
+        type: DioExceptionType.connectionError,
+        message: 'SocketException: Connection refused',
+      );
+
+      final statusCode = LoggerLogsData.getStatusCode(dioException);
+      expect(statusCode, 'SOCKET_ERR');
     });
   });
 }

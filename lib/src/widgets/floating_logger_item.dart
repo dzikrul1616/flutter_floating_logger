@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'widgets.dart';
 
@@ -43,21 +42,21 @@ class FloatingLoggerItem extends StatefulWidget {
 
 class _FloatingLoggerItemState extends State<FloatingLoggerItem>
     with SingleTickerProviderStateMixin {
-  // ValueNotifier to track expansion state of log item
   late ValueNotifier<bool> isExpand;
   late AnimationController _controller;
   late Animation<double> _animation;
-  Timer? _expansionTimer;
 
   static const _empty = SizedBox.shrink();
 
   @override
   void initState() {
-    isExpand = ValueNotifier(widget.initialExpanded);
+    final bool shouldExpand = widget.initialExpanded ||
+        (widget.isActive && widget.searchQuery.isNotEmpty);
+    isExpand = ValueNotifier(shouldExpand);
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 250),
     );
     _animation = CurvedAnimation(
       parent: _controller,
@@ -66,42 +65,23 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
     if (isExpand.value) {
       _controller.value = 1.0;
     }
-
-    // Handle initial active state (e.g., when scrolled into view)
-    if (widget.isActive && widget.searchQuery.isNotEmpty) {
-      _expansionTimer = Timer(const Duration(milliseconds: 300), () {
-        if (mounted && widget.isActive) {
-          isExpand.value = true;
-          _controller.forward();
-        }
-      });
-    }
   }
 
   @override
   void didUpdateWidget(FloatingLoggerItem oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Synchronize expansion with active search match
     if (widget.isActive != oldWidget.isActive ||
         widget.searchQuery != oldWidget.searchQuery) {
       if (widget.isActive && widget.searchQuery.isNotEmpty) {
         if (!isExpand.value) {
-          // Delay expansion to allow previous item to collapse and scroll to finish
-          _expansionTimer?.cancel();
-          _expansionTimer = Timer(const Duration(milliseconds: 300), () {
-            if (mounted && widget.isActive) {
-              isExpand.value = true;
-              _controller.forward();
-            }
-          });
+          isExpand.value = true;
+          _controller.value = 1.0;
         }
-      } else {
-        // If it was active but no longer is, or search cleared, collapse it
-        _expansionTimer?.cancel();
+      } else if (!widget.isActive && oldWidget.isActive && widget.searchQuery.isNotEmpty) {
         if (isExpand.value) {
           isExpand.value = false;
-          _controller.reverse();
+          _controller.value = 0.0;
         }
       }
     }
@@ -109,7 +89,6 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
 
   @override
   void dispose() {
-    _expansionTimer?.cancel();
     isExpand.dispose();
     _controller.dispose();
     super.dispose();
@@ -117,46 +96,49 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
 
   @override
   Widget build(BuildContext context) {
-    // If a child widget is provided, use it instead of default UI
     if (widget.child != null) {
       return widget.child!;
     }
+
+    final colors = FloatingLoggerTheme.of(context);
+
     return ValueListenableBuilder(
-        valueListenable: isExpand,
-        builder: (context, value, child) {
-          return GestureDetector(
-            onLongPress: () => copyCurlToClipboard(context),
-            onTap: () {
-              isExpand.value = !value;
-              if (isExpand.value) {
-                _controller.forward();
-              } else {
-                _controller.reverse();
-              }
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(5),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: widget.isActive
-                      ? Colors.orange.withOpacity(0.15)
-                      : Colors.transparent,
-                ),
-                child: _buildLogContainer(context, value),
+      valueListenable: isExpand,
+      builder: (context, value, child) {
+        return GestureDetector(
+          onLongPress: () => copyCurlToClipboard(context),
+          onTap: () {
+            isExpand.value = !value;
+            if (isExpand.value) {
+              _controller.forward();
+            } else {
+              _controller.reverse();
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: widget.isActive
+                    ? Colors.orange.withOpacity(0.15)
+                    : Colors.transparent,
               ),
+              child: _buildLogContainer(context, value, colors),
             ),
-          );
-        });
+          ),
+        );
+      },
+    );
   }
 
   /// Copies the cURL command to clipboard and shows a toast message.
   void copyCurlToClipboard(BuildContext context) {
-    if (widget.data.curl!.isEmpty) {
+    if (widget.data.curl == null || widget.data.curl!.isEmpty) {
       LoggerToast.errorToast(
         context,
-        "Failed to copy, no data available",
+        "Failed to copy, no cURL data available",
       );
     } else {
       Clipboard.setData(ClipboardData(text: widget.data.curl!)).then((_) {
@@ -164,24 +146,45 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
         LoggerToast.successToast(
           // ignore: use_build_context_synchronously
           context,
-          "Successfully copied cURL data",
+          "cURL copied to clipboard",
+        );
+      });
+    }
+  }
+
+  /// Copies response data to clipboard.
+  void copyResponseToClipboard(BuildContext context) {
+    final response = widget.data.responseData ?? widget.data.data;
+    if (response == null || response.isEmpty) {
+      LoggerToast.errorToast(
+        context,
+        "No response data available to copy",
+      );
+    } else {
+      Clipboard.setData(ClipboardData(text: response)).then((_) {
+        if (!mounted) return;
+        LoggerToast.successToast(
+          // ignore: use_build_context_synchronously
+          context,
+          "Response data copied",
         );
       });
     }
   }
 
   /// Builds the log container with styling and expandable details.
-  Widget _buildLogContainer(BuildContext context, bool isExpanded) {
+  Widget _buildLogContainer(
+      BuildContext context, bool isExpanded, FloatingLoggerColors colors) {
     return Container(
-      decoration: _boxDecoration(),
+      decoration: _boxDecoration(colors),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildIndex(),
-            const SizedBox(width: 5.0),
-            _buildLogDetails(isExpanded),
+            _buildIndex(colors),
+            const SizedBox(width: 6.0),
+            _buildLogDetails(isExpanded, colors),
           ],
         ),
       ),
@@ -189,45 +192,50 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
   }
 
   /// Returns the BoxDecoration for styling the log container.
-  BoxDecoration _boxDecoration() {
+  BoxDecoration _boxDecoration(FloatingLoggerColors colors) {
     return BoxDecoration(
-      boxShadow: const <BoxShadow>[
+      boxShadow: [
         BoxShadow(
-          color: Color.fromARGB(34, 0, 0, 0),
-          blurRadius: 4,
-          offset: Offset(0, 4),
+          color: Colors.black.withOpacity(0.06),
+          blurRadius: 6,
+          offset: const Offset(0, 2),
         ),
       ],
       border: Border.all(
-        width: widget.isActive ? 3.0 : 2.0,
+        width: widget.isActive ? 2.5 : 1.0,
         color: widget.isActive
             ? Colors.orange
-            : _getStatusColor(
-                isBorder: true,
-              ),
+            : colors.border,
       ),
       borderRadius: BorderRadius.circular(12),
-      color: Colors.white,
+      color: colors.cardBackground,
     );
   }
 
   /// Builds the log index number.
-  Widget _buildIndex() {
+  Widget _buildIndex(FloatingLoggerColors colors) {
     return SizedBox(
-      width: 20,
+      width: 24,
       child: _highlightSubText(
-        '${widget.index + 1}. ',
-        const TextStyle(fontFamily: 'Inter', package: 'floating_logger'),
+        '${widget.index + 1}.',
+        TextStyle(
+          fontFamily: 'Inter',
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: colors.textSecondary,
+          package: 'floating_logger',
+        ),
       ),
     );
   }
 
   /// Builds the log details including type, path, and status.
-  Widget _buildLogDetails(bool isExpanded) {
+  Widget _buildLogDetails(bool isExpanded, FloatingLoggerColors colors) {
     return Expanded(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildLogHeader(isExpanded),
+          _buildLogHeader(isExpanded, colors),
           AnimatedBuilder(
             animation: _animation,
             builder: (context, child) {
@@ -239,7 +247,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
                 child: SizeTransition(
                   sizeFactor: _animation,
                   axisAlignment: -1.0,
-                  child: _buildExpandedDetails(),
+                  child: _buildExpandedDetails(colors),
                 ),
               );
             },
@@ -250,27 +258,33 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
   }
 
   /// Builds the log header with type, status, and path.
-  Widget _buildLogHeader(bool isExpanded) {
+  Widget _buildLogHeader(bool isExpanded, FloatingLoggerColors colors) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildLogType(),
-        const SizedBox(height: 5.0),
+        _buildLogType(colors),
+        const SizedBox(height: 6.0),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: _highlightSubText(
                 widget.data.path ?? "",
-                const TextStyle(
-                    fontFamily: 'Inter', fontWeight: FontWeight.bold),
+                TextStyle(
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: colors.textPrimary,
+                ),
               ),
             ),
+            const SizedBox(width: 4),
             Icon(
               isExpanded
-                  ? Icons.arrow_drop_up_sharp
-                  : Icons.arrow_drop_down_sharp,
-              color: Colors.grey[700],
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.keyboard_arrow_down_rounded,
+              color: colors.textSecondary,
+              size: 22,
             ),
           ],
         ),
@@ -279,17 +293,23 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
   }
 
   /// Builds the log type with response status indicator.
-  Widget _buildLogType() {
+  Widget _buildLogType(FloatingLoggerColors colors) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Flexible(
           child: Wrap(
-            spacing: 4,
+            spacing: 6,
             runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               if (widget.data.method != null) _buildMethod(),
               if (widget.data.type != null) _buildRequest(),
+              if (widget.data.isSimulation)
+                _labelStatus(
+                  const Color(0xFF9333EA),
+                  "SIMULATION",
+                ),
             ],
           ),
         ),
@@ -305,30 +325,25 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
 
     return _labelStatus(
       statusColor,
-      '${widget.data.response} $statusText',
+      '${widget.data.response ?? ""} $statusText'.trim(),
     );
   }
 
   /// Builds the Method indicator based on the log response.
   Widget _buildMethod() {
     Color statusColor = _getMethodColor();
-
     return _labelStatus(
       statusColor,
       widget.data.method!,
     );
   }
 
-  /// Builds the Method indicator based on the log response.
+  /// Builds the Request indicator based on the log response.
   Widget _buildRequest() {
     Color statusColor = _getRequestColor();
-
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: _labelStatus(
-        statusColor,
-        widget.data.type!,
-      ),
+    return _labelStatus(
+      statusColor,
+      widget.data.type!,
     );
   }
 
@@ -339,25 +354,20 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
     return Container(
       decoration: BoxDecoration(
         color: statusColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 4,
+          horizontal: 6,
+          vertical: 3,
         ),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            statusText,
-            softWrap: false,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-              fontSize: 12,
-              fontFamily: 'Inter',
-            ),
+        child: Text(
+          statusText,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+            fontSize: 11,
+            fontFamily: 'Inter',
           ),
         ),
       ),
@@ -365,32 +375,34 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
   }
 
   /// Builds expanded details when the log is expanded.
-  Widget _buildExpandedDetails() {
+  Widget _buildExpandedDetails(FloatingLoggerColors colors) {
     var param = widget.data.queryparameter;
     var message = widget.data.message;
     var header = widget.data.header;
     var curl = widget.data.curl;
     var responseTime = widget.data.responseTime;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 8),
         Divider(
-          thickness: 2,
-          color: _getStatusColor(
-            isBorder: true,
-          ),
+          thickness: 1,
+          color: colors.divider,
         ),
         responseTime == null
             ? _empty
             : _codeFieldCopy(
                 'Response Time',
                 "$responseTime ms",
+                colors,
               ),
         _isDataEmpty(message)
             ? _empty
             : _codeFieldCopy(
                 'Message',
                 message!,
+                colors,
               ),
         _isDataEmpty(param)
             ? _empty
@@ -399,9 +411,8 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
                 data: param!,
                 searchQuery: widget.searchQuery,
               ),
-        // Binary Preview Section
         widget.data.isBinaryResponse && widget.data.binaryData != null
-            ? _buildBinaryPreview()
+            ? _buildBinaryPreview(colors)
             : _isDataEmpty(widget.data.type == "REQUEST"
                     ? widget.data.data
                     : widget.data.responseData)
@@ -439,13 +450,12 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
   }
 
   /// Builds binary preview widget (image or PDF indicator)
-  Widget _buildBinaryPreview() {
+  Widget _buildBinaryPreview(FloatingLoggerColors colors) {
     final contentType = widget.data.contentType?.toLowerCase() ?? '';
     final binaryData = widget.data.binaryData;
 
     if (binaryData == null) return _empty;
 
-    // Check if it's an image
     if (contentType.startsWith('image/')) {
       return Padding(
         padding: const EdgeInsets.only(top: 6),
@@ -454,7 +464,8 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              color: Colors.grey[200],
+              color: colors.codeBackground,
+              border: Border.all(color: colors.border),
             ),
             child: Padding(
               padding: const EdgeInsets.all(10),
@@ -468,7 +479,8 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
                         'Image Preview',
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
-                          fontSize: 14,
+                          fontSize: 13,
+                          color: colors.textPrimary,
                           fontFamily: 'Inter',
                           package: 'floating_logger',
                         ),
@@ -485,7 +497,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           padding: const EdgeInsets.all(16),
-                          child: Text(
+                          child: const Text(
                             'Failed to load image',
                             style: TextStyle(
                               color: Colors.red,
@@ -503,7 +515,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
                     'Size: ${(binaryData.length / 1024).toStringAsFixed(2)} KB',
                     style: TextStyle(
                       fontSize: 11,
-                      color: Colors.grey[600],
+                      color: colors.textSecondary,
                       fontFamily: 'Inter',
                       package: 'floating_logger',
                     ),
@@ -516,9 +528,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
       );
     }
 
-    // Check if it's a PDF
     if (contentType.contains('application/pdf')) {
-      // Try to extract filename from path if it exists
       String fileName = 'PDF Document';
       if (widget.data.path != null && widget.data.path!.isNotEmpty) {
         try {
@@ -530,9 +540,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
               fileName = lastSegment;
             }
           }
-        } catch (_) {
-          // Fallback to default
-        }
+        } catch (_) {}
       }
 
       return Padding(
@@ -540,47 +548,44 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: Colors.grey[200],
+            color: colors.codeBackground,
+            border: Border.all(color: colors.border),
           ),
           child: Padding(
             padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.picture_as_pdf,
-                      color: Colors.red,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            fileName,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                              fontFamily: 'Inter',
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            'Size: ${(binaryData.length / 1024).toStringAsFixed(2)} KB',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey[600],
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                        ],
+                const Icon(
+                  Icons.picture_as_pdf,
+                  color: Colors.red,
+                  size: 24,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        fileName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          color: colors.textPrimary,
+                          fontFamily: 'Inter',
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                      Text(
+                        'Size: ${(binaryData.length / 1024).toStringAsFixed(2)} KB',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colors.textSecondary,
+                          fontFamily: 'Inter',
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -589,11 +594,9 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
       );
     }
 
-    // Fallback for other binary types
     return _empty;
   }
 
-  /// Shows a zoomable image dialog
   void _showImageDialog(BuildContext context, Uint8List binaryData) {
     showDialog(
       context: context,
@@ -612,7 +615,7 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.close, color: Colors.black54),
+              icon: const Icon(Icons.close),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
@@ -624,13 +627,15 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
   Widget _codeFieldCopy(
     String title,
     String data,
+    FloatingLoggerColors colors,
   ) {
     return Padding(
       padding: const EdgeInsets.only(top: 6),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          color: Colors.grey[200],
+          color: colors.codeBackground,
+          border: Border.all(color: colors.border),
         ),
         child: Padding(
           padding: const EdgeInsets.all(10),
@@ -642,9 +647,10 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w700,
-                      fontSize: 14,
+                      fontSize: 13,
+                      color: colors.textPrimary,
                       fontFamily: 'Inter',
                     ),
                   ),
@@ -661,16 +667,23 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
                     child: Icon(
                       Icons.copy,
                       size: 15,
+                      color: colors.textSecondary,
                     ),
                   ),
                 ],
               ),
-              _highlightSubText(
-                data,
-                const TextStyle(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 12,
-                  fontFamily: 'Inter',
+              const SizedBox(height: 4),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: _highlightSubText(
+                  data,
+                  TextStyle(
+                    fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                    color: colors.textPrimary,
+                    fontFamily: 'Inter',
+                  ),
                 ),
               ),
             ],
@@ -724,22 +737,20 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
   }
 
   /// Determines the color of the status indicator.
-  Color _getStatusColor({
-    bool isBorder = false,
-  }) {
+  Color _getStatusColor() {
     switch (widget.data.type) {
       case 'RESPONSE':
-        return Colors.green;
+        return const Color(0xFF16A34A);
       case 'ERROR':
-        return Colors.red;
+        return const Color(0xFFDC2626);
       case 'REQUEST':
-        return isBorder ? Color(0xffECECEC) : Color(0xffFFB700);
+        return const Color(0xFFEAB308);
       default:
         return LoggerNetworkSettings.isSucces(widget.data)
-            ? Colors.green
+            ? const Color(0xFF16A34A)
             : LoggerNetworkSettings.isError(widget.data)
-                ? Colors.red
-                : Color(0xffFFB700);
+                ? const Color(0xFFDC2626)
+                : const Color(0xFFEAB308);
     }
   }
 
@@ -747,22 +758,20 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
   Color _getRequestColor() {
     switch (widget.data.type) {
       case 'RESPONSE':
-        return Colors.blue[400]!;
+        return Colors.blue[600]!;
       case 'ERROR':
-        return Colors.red[400]!;
+        return Colors.red[600]!;
       default:
-        return Colors.grey[400]!;
+        return Colors.grey[600]!;
     }
   }
-
-  /// Determines the color of the Request indicator.
 
   Color _getMethodColor() {
     switch (widget.data.method) {
       case 'GET':
-        return Colors.green;
+        return const Color(0xFF16A34A);
       case 'POST':
-        return Color(0xffFFB700);
+        return const Color(0xFFEAB308);
       case 'PUT':
         return Colors.blue;
       case 'PATCH':
@@ -770,13 +779,12 @@ class _FloatingLoggerItemState extends State<FloatingLoggerItem>
       case 'OPTIONS':
         return Colors.purple;
       case 'HEAD':
-        return Colors.greenAccent;
+        return Colors.teal;
       default:
         return Colors.red;
     }
   }
 
-  /// Determines the text of the status indicator.
   String _getStatusText() {
     if (widget.data.type == 'RESPONSE' ||
         LoggerNetworkSettings.isSucces(widget.data)) {
@@ -806,20 +814,40 @@ class _CollapsibleCodeField extends StatefulWidget {
 }
 
 class _CollapsibleCodeFieldState extends State<_CollapsibleCodeField> {
-  bool _isExpanded = true;
+  late bool _isExpanded;
+
+  @override
+  void initState() {
+    super.initState();
+    _isExpanded = widget.searchQuery.isNotEmpty
+        ? widget.data.toLowerCase().contains(widget.searchQuery.toLowerCase())
+        : true;
+  }
+
+  @override
+  void didUpdateWidget(_CollapsibleCodeField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.searchQuery != oldWidget.searchQuery &&
+        widget.searchQuery.isNotEmpty) {
+      if (widget.data.toLowerCase().contains(widget.searchQuery.toLowerCase())) {
+        _isExpanded = true;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final colors = FloatingLoggerTheme.of(context);
+
     return Padding(
       padding: const EdgeInsets.only(top: 6),
       child: GestureDetector(
-        onTap: () {
-          // Do nothing to absorb the tap and prevent the main Log Item from toggling.
-        },
+        onTap: () {},
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: Colors.grey[200],
+            color: colors.codeBackground,
+            border: Border.all(color: colors.border),
           ),
           child: Padding(
             padding: const EdgeInsets.all(10),
@@ -832,9 +860,10 @@ class _CollapsibleCodeFieldState extends State<_CollapsibleCodeField> {
                     Flexible(
                       child: Text(
                         widget.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w700,
-                          fontSize: 14,
+                          fontSize: 13,
+                          color: colors.textPrimary,
                           fontFamily: 'Inter',
                           package: 'floating_logger',
                         ),
@@ -854,6 +883,7 @@ class _CollapsibleCodeFieldState extends State<_CollapsibleCodeField> {
                                 ? Icons.arrow_drop_up
                                 : Icons.arrow_drop_down,
                             size: 20,
+                            color: colors.textSecondary,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -869,9 +899,10 @@ class _CollapsibleCodeFieldState extends State<_CollapsibleCodeField> {
                               );
                             });
                           },
-                          child: const Icon(
+                          child: Icon(
                             Icons.copy,
                             size: 15,
+                            color: colors.textSecondary,
                           ),
                         ),
                       ],
@@ -884,7 +915,7 @@ class _CollapsibleCodeFieldState extends State<_CollapsibleCodeField> {
                   child: _isExpanded
                       ? Padding(
                           padding: const EdgeInsets.only(top: 8),
-                          child: _buildContent(),
+                          child: _buildContent(colors),
                         )
                       : const SizedBox.shrink(),
                 ),
@@ -896,7 +927,7 @@ class _CollapsibleCodeFieldState extends State<_CollapsibleCodeField> {
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(FloatingLoggerColors colors) {
     try {
       if (widget.data.trim().startsWith('{') ||
           widget.data.trim().startsWith('[')) {
@@ -907,13 +938,18 @@ class _CollapsibleCodeFieldState extends State<_CollapsibleCodeField> {
         );
       }
     } catch (_) {}
-    // Fallback to text if not JSON or parsing fails
-    return _highlightSubText(
-      widget.data,
-      const TextStyle(
-        fontWeight: FontWeight.w400,
-        fontSize: 12,
-        fontFamily: 'Inter',
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: _highlightSubText(
+        widget.data,
+        TextStyle(
+          fontWeight: FontWeight.w400,
+          fontSize: 12,
+          color: colors.textPrimary,
+          fontFamily: 'Inter',
+        ),
       ),
     );
   }
